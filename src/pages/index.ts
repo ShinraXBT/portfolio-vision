@@ -7,3 +7,4 @@ export { MarketEvents } from './MarketEvents';
 export { WalletManager } from './WalletManager';
 export { Portfolios } from './Portfolios';
 export { Settings } from './Settings';
+export { Auth } from './Auth';

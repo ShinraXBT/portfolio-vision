@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { Portfolio, Wallet, DailySnapshot, MonthlySnapshot, Settings, Goal, JournalEntry, MarketEvent } from '../types';
-import { portfolioService, walletService, snapshotService, settingsService, goalService, journalService, marketEventService, initializeDatabase } from '../services/db';
-import { v4 as uuidv4 } from 'uuid';
+import { isSupabaseConfigured } from '../services/supabase';
+import * as supabaseData from '../services/supabaseData';
+import * as localDb from '../services/db';
 
 interface AppState {
   // Data
@@ -18,6 +19,7 @@ interface AppState {
   activePortfolioId: string | null;
   isLoading: boolean;
   error: string | null;
+  useCloud: boolean;
 
   // Computed
   activePortfolio: Portfolio | null;
@@ -28,7 +30,7 @@ interface AppState {
   activeJournalEntries: JournalEntry[];
 
   // Actions
-  initialize: () => Promise<void>;
+  initialize: (useCloud?: boolean) => Promise<void>;
   setActivePortfolio: (id: string | null) => void;
 
   // Portfolio actions
@@ -87,6 +89,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   activePortfolioId: null,
   isLoading: true,
   error: null,
+  useCloud: false,
 
   // Computed getters
   get activePortfolio() {
@@ -125,31 +128,58 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   // Initialize app
-  initialize: async () => {
+  initialize: async (useCloud = false) => {
     try {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null, useCloud });
 
-      await initializeDatabase();
+      let portfolios: Portfolio[] = [];
+      let wallets: Wallet[] = [];
+      let allSnapshots: DailySnapshot[] = [];
+      let allMonthlySnapshots: MonthlySnapshot[] = [];
+      let goals: Goal[] = [];
+      let journalEntries: JournalEntry[] = [];
+      let marketEvents: MarketEvent[] = [];
 
-      const [portfolios, wallets, settings, goals, journalEntries, marketEvents] = await Promise.all([
-        portfolioService.getAll(),
-        walletService.getAll(),
-        settingsService.get(),
-        goalService.getAll(),
-        journalService.getAll(),
-        marketEventService.getAll()
-      ]);
+      if (useCloud && isSupabaseConfigured()) {
+        // Load from Supabase
+        [portfolios, wallets, goals, journalEntries, marketEvents] = await Promise.all([
+          supabaseData.portfolioService.getAll(),
+          supabaseData.walletService.getAll(),
+          supabaseData.goalService.getAll(),
+          supabaseData.journalService.getAll(),
+          supabaseData.marketEventService.getAll()
+        ]);
 
-      // Get all daily snapshots
-      const allSnapshots: DailySnapshot[] = [];
-      const allMonthlySnapshots: MonthlySnapshot[] = [];
+        // Load snapshots for each portfolio
+        for (const portfolio of portfolios) {
+          const [dailySnaps, monthlySnaps] = await Promise.all([
+            supabaseData.snapshotService.getDailySnapshots(portfolio.id),
+            supabaseData.snapshotService.getMonthlySnapshots(portfolio.id)
+          ]);
+          allSnapshots.push(...dailySnaps);
+          allMonthlySnapshots.push(...monthlySnaps);
+        }
+      } else {
+        // Load from local IndexedDB
+        await localDb.initializeDatabase();
 
-      for (const portfolio of portfolios) {
-        const pSnapshots = await snapshotService.getDailySnapshots(portfolio.id);
-        allSnapshots.push(...pSnapshots);
+        [portfolios, wallets, goals, journalEntries, marketEvents] = await Promise.all([
+          localDb.portfolioService.getAll(),
+          localDb.walletService.getAll(),
+          localDb.goalService.getAll(),
+          localDb.journalService.getAll(),
+          localDb.marketEventService.getAll()
+        ]);
 
-        const mSnapshots = await snapshotService.getMonthlySnapshots(portfolio.id);
-        allMonthlySnapshots.push(...mSnapshots);
+        // Load snapshots for each portfolio
+        for (const portfolio of portfolios) {
+          const [dailySnaps, monthlySnaps] = await Promise.all([
+            localDb.snapshotService.getDailySnapshots(portfolio.id),
+            localDb.snapshotService.getMonthlySnapshots(portfolio.id)
+          ]);
+          allSnapshots.push(...dailySnaps);
+          allMonthlySnapshots.push(...monthlySnaps);
+        }
       }
 
       // Set active portfolio to first one if exists
@@ -163,9 +193,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         goals,
         journalEntries,
         marketEvents,
-        settings: settings ?? null,
+        settings: null,
         activePortfolioId,
-        isLoading: false
+        isLoading: false,
+        useCloud
       });
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
@@ -178,14 +209,21 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Portfolio actions
   createPortfolio: async (name, color) => {
-    const portfolio: Portfolio = {
-      id: uuidv4(),
-      name,
-      color,
-      createdAt: new Date()
-    };
+    const { useCloud } = get();
 
-    await portfolioService.create(portfolio);
+    let portfolio: Portfolio;
+
+    if (useCloud && isSupabaseConfigured()) {
+      portfolio = await supabaseData.portfolioService.create({ name, color });
+    } else {
+      portfolio = {
+        id: crypto.randomUUID(),
+        name,
+        color,
+        createdAt: new Date()
+      };
+      await localDb.portfolioService.create(portfolio);
+    }
 
     set(state => ({
       portfolios: [...state.portfolios, portfolio],
@@ -196,7 +234,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updatePortfolio: async (id, changes) => {
-    await portfolioService.update(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.portfolioService.update(id, changes);
+    } else {
+      await localDb.portfolioService.update(id, changes);
+    }
 
     set(state => ({
       portfolios: state.portfolios.map(p =>
@@ -206,7 +250,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deletePortfolio: async (id) => {
-    await portfolioService.delete(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.portfolioService.delete(id);
+    } else {
+      await localDb.portfolioService.delete(id);
+    }
 
     set(state => {
       const newPortfolios = state.portfolios.filter(p => p.id !== id);
@@ -232,12 +282,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Wallet actions
   createWallet: async (data) => {
-    const wallet: Wallet = {
-      ...data,
-      id: uuidv4()
-    };
+    const { useCloud } = get();
 
-    await walletService.create(wallet);
+    let wallet: Wallet;
+
+    if (useCloud && isSupabaseConfigured()) {
+      wallet = await supabaseData.walletService.create(data);
+    } else {
+      wallet = { ...data, id: crypto.randomUUID() };
+      await localDb.walletService.create(wallet);
+    }
 
     set(state => ({
       wallets: [...state.wallets, wallet]
@@ -247,7 +301,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateWallet: async (id, changes) => {
-    await walletService.update(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.walletService.update(id, changes);
+    } else {
+      await localDb.walletService.update(id, changes);
+    }
 
     set(state => ({
       wallets: state.wallets.map(w =>
@@ -257,7 +317,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteWallet: async (id) => {
-    await walletService.delete(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.walletService.delete(id);
+    } else {
+      await localDb.walletService.delete(id);
+    }
 
     set(state => ({
       wallets: state.wallets.filter(w => w.id !== id)
@@ -266,12 +332,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Daily Snapshot actions
   createSnapshot: async (data) => {
-    const snapshot: DailySnapshot = {
-      ...data,
-      id: uuidv4()
-    };
+    const { useCloud } = get();
 
-    await snapshotService.createDailySnapshot(snapshot);
+    let snapshot: DailySnapshot;
+
+    if (useCloud && isSupabaseConfigured()) {
+      snapshot = await supabaseData.snapshotService.createDailySnapshot(data);
+    } else {
+      snapshot = { ...data, id: crypto.randomUUID() };
+      await localDb.snapshotService.createDailySnapshot(snapshot);
+    }
 
     set(state => {
       // Remove existing snapshot for same date if exists
@@ -287,7 +357,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateSnapshot: async (id, changes) => {
-    await snapshotService.updateDailySnapshot(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      // For Supabase, we'd need to add an update method
+    } else {
+      await localDb.snapshotService.updateDailySnapshot(id, changes);
+    }
 
     set(state => ({
       snapshots: state.snapshots.map(s =>
@@ -297,7 +373,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteSnapshot: async (id) => {
-    await snapshotService.deleteDailySnapshot(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.snapshotService.deleteDailySnapshot(id);
+    } else {
+      await localDb.snapshotService.deleteDailySnapshot(id);
+    }
 
     set(state => ({
       snapshots: state.snapshots.filter(s => s.id !== id)
@@ -306,15 +388,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Monthly Snapshot actions
   createMonthlySnapshot: async (data) => {
-    const snapshot: MonthlySnapshot = {
-      ...data,
-      id: uuidv4()
-    };
+    const { useCloud } = get();
 
-    await snapshotService.createMonthlySnapshot(snapshot);
+    let snapshot: MonthlySnapshot;
+
+    if (useCloud && isSupabaseConfigured()) {
+      snapshot = await supabaseData.snapshotService.createMonthlySnapshot(data);
+    } else {
+      snapshot = { ...data, id: crypto.randomUUID() };
+      await localDb.snapshotService.createMonthlySnapshot(snapshot);
+    }
 
     set(state => {
-      // Remove existing snapshot for same month if exists
       const filtered = state.monthlySnapshots.filter(
         s => !(s.portfolioId === snapshot.portfolioId && s.month === snapshot.month)
       );
@@ -327,7 +412,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateMonthlySnapshot: async (id, changes) => {
-    await snapshotService.updateMonthlySnapshot(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.snapshotService.updateMonthlySnapshot(id, changes);
+    } else {
+      await localDb.snapshotService.updateMonthlySnapshot(id, changes);
+    }
 
     set(state => ({
       monthlySnapshots: state.monthlySnapshots.map(s =>
@@ -337,7 +428,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteMonthlySnapshot: async (id) => {
-    await snapshotService.deleteMonthlySnapshot(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.snapshotService.deleteMonthlySnapshot(id);
+    } else {
+      await localDb.snapshotService.deleteMonthlySnapshot(id);
+    }
 
     set(state => ({
       monthlySnapshots: state.monthlySnapshots.filter(s => s.id !== id)
@@ -346,13 +443,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Goal actions
   createGoal: async (data) => {
-    const goal: Goal = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date().toISOString()
-    };
+    const { useCloud } = get();
 
-    await goalService.create(goal);
+    let goal: Goal;
+
+    if (useCloud && isSupabaseConfigured()) {
+      goal = await supabaseData.goalService.create(data);
+    } else {
+      goal = {
+        ...data,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString()
+      };
+      await localDb.goalService.create(goal);
+    }
 
     set(state => ({
       goals: [...state.goals, goal]
@@ -362,7 +466,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateGoal: async (id, changes) => {
-    await goalService.update(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.goalService.update(id, changes);
+    } else {
+      await localDb.goalService.update(id, changes);
+    }
 
     set(state => ({
       goals: state.goals.map(g =>
@@ -372,7 +482,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteGoal: async (id) => {
-    await goalService.delete(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.goalService.delete(id);
+    } else {
+      await localDb.goalService.delete(id);
+    }
 
     set(state => ({
       goals: state.goals.filter(g => g.id !== id)
@@ -381,7 +497,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   completeGoal: async (id) => {
     const completedAt = new Date().toISOString();
-    await goalService.markCompleted(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.goalService.update(id, { completedAt });
+    } else {
+      await localDb.goalService.markCompleted(id);
+    }
 
     set(state => ({
       goals: state.goals.map(g =>
@@ -392,13 +514,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Journal actions
   createJournalEntry: async (data) => {
-    const entry: JournalEntry = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date().toISOString()
-    };
+    const { useCloud } = get();
 
-    await journalService.create(entry);
+    let entry: JournalEntry;
+
+    if (useCloud && isSupabaseConfigured()) {
+      entry = await supabaseData.journalService.create(data);
+    } else {
+      entry = {
+        ...data,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString()
+      };
+      await localDb.journalService.create(entry);
+    }
 
     set(state => ({
       journalEntries: [...state.journalEntries, entry]
@@ -408,7 +537,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateJournalEntry: async (id, changes) => {
-    await journalService.update(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.journalService.update(id, changes);
+    } else {
+      await localDb.journalService.update(id, changes);
+    }
 
     set(state => ({
       journalEntries: state.journalEntries.map(e =>
@@ -418,7 +553,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteJournalEntry: async (id) => {
-    await journalService.delete(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.journalService.delete(id);
+    } else {
+      await localDb.journalService.delete(id);
+    }
 
     set(state => ({
       journalEntries: state.journalEntries.filter(e => e.id !== id)
@@ -427,13 +568,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Market Event actions
   createMarketEvent: async (data) => {
-    const event: MarketEvent = {
-      ...data,
-      id: uuidv4(),
-      createdAt: new Date().toISOString()
-    };
+    const { useCloud } = get();
 
-    await marketEventService.create(event);
+    let event: MarketEvent;
+
+    if (useCloud && isSupabaseConfigured()) {
+      event = await supabaseData.marketEventService.create(data);
+    } else {
+      event = {
+        ...data,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString()
+      };
+      await localDb.marketEventService.create(event);
+    }
 
     set(state => ({
       marketEvents: [...state.marketEvents, event]
@@ -443,7 +591,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateMarketEvent: async (id, changes) => {
-    await marketEventService.update(id, changes);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.marketEventService.update(id, changes);
+    } else {
+      await localDb.marketEventService.update(id, changes);
+    }
 
     set(state => ({
       marketEvents: state.marketEvents.map(e =>
@@ -453,7 +607,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteMarketEvent: async (id) => {
-    await marketEventService.delete(id);
+    const { useCloud } = get();
+
+    if (useCloud && isSupabaseConfigured()) {
+      await supabaseData.marketEventService.delete(id);
+    } else {
+      await localDb.marketEventService.delete(id);
+    }
 
     set(state => ({
       marketEvents: state.marketEvents.filter(e => e.id !== id)
@@ -462,7 +622,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Settings actions
   updateSettings: async (changes) => {
-    await settingsService.update(changes);
+    await localDb.settingsService.update(changes);
 
     set(state => ({
       settings: state.settings ? { ...state.settings, ...changes } : null
@@ -471,7 +631,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Refresh all data
   refreshData: async () => {
-    const { initialize } = get();
-    await initialize();
+    const { initialize, useCloud } = get();
+    await initialize(useCloud);
   }
 }));

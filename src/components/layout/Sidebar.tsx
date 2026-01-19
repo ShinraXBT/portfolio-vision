@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Calendar,
@@ -11,9 +11,12 @@ import {
   Target,
   BookOpen,
   Newspaper,
+  LogOut,
+  User,
   Cloud
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
+import { useAuthStore } from '../../stores/authStore';
 import { useState } from 'react';
 
 const navItems = [
@@ -29,10 +32,17 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const { portfolios, activePortfolioId, setActivePortfolio } = useAppStore();
+  const navigate = useNavigate();
+  const { portfolios, activePortfolioId, setActivePortfolio, useCloud } = useAppStore();
+  const { user, signOut, isConfigured } = useAuthStore();
   const [isPortfolioDropdownOpen, setIsPortfolioDropdownOpen] = useState(false);
 
   const activePortfolio = portfolios.find(p => p.id === activePortfolioId);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <aside className="w-64 h-full glass-subtle border-r border-white/5 flex flex-col">
@@ -116,10 +126,34 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/5">
-        <p className="text-xs text-white/30 text-center">
-          100% Local Storage
-        </p>
+      <div className="p-4 border-t border-white/5 space-y-3">
+        {isConfigured && user ? (
+          <>
+            <div className="flex items-center gap-2 px-2">
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <User className="w-4 h-4 text-purple-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-white/70 truncate">{user.email}</p>
+                <p className="text-xs text-green-400 flex items-center gap-1">
+                  <Cloud className="w-3 h-3" />
+                  Cloud Sync
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-white/50 hover:text-white text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </>
+        ) : (
+          <p className="text-xs text-white/30 text-center">
+            {useCloud ? 'Cloud Storage' : 'Local Storage'}
+          </p>
+        )}
       </div>
     </aside>
   );
