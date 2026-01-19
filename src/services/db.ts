@@ -1,5 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import { Portfolio, Wallet, DailySnapshot, MonthlySnapshot, Settings } from '../types';
+import { Portfolio, Wallet, DailySnapshot, MonthlySnapshot, Settings, Goal, JournalEntry, MarketEvent } from '../types';
 
 export class PortfolioDatabase extends Dexie {
   portfolios!: Table<Portfolio>;
@@ -7,6 +7,9 @@ export class PortfolioDatabase extends Dexie {
   dailySnapshots!: Table<DailySnapshot>;
   monthlySnapshots!: Table<MonthlySnapshot>;
   settings!: Table<Settings>;
+  goals!: Table<Goal>;
+  journalEntries!: Table<JournalEntry>;
+  marketEvents!: Table<MarketEvent>;
 
   constructor() {
     super('PortfolioVisionDB');
@@ -17,6 +20,18 @@ export class PortfolioDatabase extends Dexie {
       dailySnapshots: 'id, portfolioId, date, [portfolioId+date]',
       monthlySnapshots: 'id, portfolioId, month, year, [portfolioId+month]',
       settings: 'id'
+    });
+
+    // Version 2: Add goals, journal, and market events
+    this.version(2).stores({
+      portfolios: 'id, name, createdAt',
+      wallets: 'id, portfolioId, name, chain',
+      dailySnapshots: 'id, portfolioId, date, [portfolioId+date]',
+      monthlySnapshots: 'id, portfolioId, month, year, [portfolioId+month]',
+      settings: 'id',
+      goals: 'id, portfolioId, createdAt, completedAt',
+      journalEntries: 'id, portfolioId, date, [portfolioId+date]',
+      marketEvents: 'id, date, type'
     });
   }
 }
@@ -190,21 +205,131 @@ export const settingsService = {
   }
 };
 
+// Goal operations
+export const goalService = {
+  async getAll(): Promise<Goal[]> {
+    return db.goals.toArray();
+  },
+
+  async getByPortfolio(portfolioId: string): Promise<Goal[]> {
+    return db.goals.where('portfolioId').equals(portfolioId).toArray();
+  },
+
+  async getById(id: string): Promise<Goal | undefined> {
+    return db.goals.get(id);
+  },
+
+  async create(goal: Goal): Promise<string> {
+    return db.goals.add(goal);
+  },
+
+  async update(id: string, changes: Partial<Goal>): Promise<number> {
+    return db.goals.update(id, changes);
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.goals.delete(id);
+  },
+
+  async markCompleted(id: string): Promise<number> {
+    return db.goals.update(id, { completedAt: new Date().toISOString() });
+  }
+};
+
+// Journal operations
+export const journalService = {
+  async getAll(): Promise<JournalEntry[]> {
+    return db.journalEntries.toArray();
+  },
+
+  async getByPortfolio(portfolioId: string): Promise<JournalEntry[]> {
+    return db.journalEntries.where('portfolioId').equals(portfolioId).sortBy('date');
+  },
+
+  async getByDate(portfolioId: string, date: string): Promise<JournalEntry | undefined> {
+    return db.journalEntries
+      .where('[portfolioId+date]')
+      .equals([portfolioId, date])
+      .first();
+  },
+
+  async getByDateRange(portfolioId: string, startDate: string, endDate: string): Promise<JournalEntry[]> {
+    return db.journalEntries
+      .where('portfolioId')
+      .equals(portfolioId)
+      .filter(e => e.date >= startDate && e.date <= endDate)
+      .sortBy('date');
+  },
+
+  async create(entry: JournalEntry): Promise<string> {
+    return db.journalEntries.add(entry);
+  },
+
+  async update(id: string, changes: Partial<JournalEntry>): Promise<number> {
+    return db.journalEntries.update(id, { ...changes, updatedAt: new Date().toISOString() });
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.journalEntries.delete(id);
+  }
+};
+
+// Market Event operations
+export const marketEventService = {
+  async getAll(): Promise<MarketEvent[]> {
+    return db.marketEvents.orderBy('date').reverse().toArray();
+  },
+
+  async getByDateRange(startDate: string, endDate: string): Promise<MarketEvent[]> {
+    return db.marketEvents
+      .filter(e => e.date >= startDate && e.date <= endDate)
+      .sortBy('date');
+  },
+
+  async getByType(type: MarketEvent['type']): Promise<MarketEvent[]> {
+    return db.marketEvents.where('type').equals(type).sortBy('date');
+  },
+
+  async getById(id: string): Promise<MarketEvent | undefined> {
+    return db.marketEvents.get(id);
+  },
+
+  async create(event: MarketEvent): Promise<string> {
+    return db.marketEvents.add(event);
+  },
+
+  async update(id: string, changes: Partial<MarketEvent>): Promise<number> {
+    return db.marketEvents.update(id, changes);
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.marketEvents.delete(id);
+  }
+};
+
 // Export/Import operations
 export const exportService = {
   async exportAll() {
-    const [portfolios, wallets, snapshots] = await Promise.all([
+    const [portfolios, wallets, snapshots, monthlySnapshots, goals, journalEntries, marketEvents] = await Promise.all([
       db.portfolios.toArray(),
       db.wallets.toArray(),
-      db.dailySnapshots.toArray()
+      db.dailySnapshots.toArray(),
+      db.monthlySnapshots.toArray(),
+      db.goals.toArray(),
+      db.journalEntries.toArray(),
+      db.marketEvents.toArray()
     ]);
 
     return {
       portfolios,
       wallets,
       snapshots,
+      monthlySnapshots,
+      goals,
+      journalEntries,
+      marketEvents,
       exportedAt: new Date().toISOString(),
-      version: '1.0'
+      version: '2.0'
     };
   },
 
@@ -212,8 +337,12 @@ export const exportService = {
     portfolios: Portfolio[];
     wallets: Wallet[];
     snapshots: DailySnapshot[];
+    monthlySnapshots?: MonthlySnapshot[];
+    goals?: Goal[];
+    journalEntries?: JournalEntry[];
+    marketEvents?: MarketEvent[];
   }) {
-    await db.transaction('rw', [db.portfolios, db.wallets, db.dailySnapshots], async () => {
+    await db.transaction('rw', [db.portfolios, db.wallets, db.dailySnapshots, db.monthlySnapshots, db.goals, db.journalEntries, db.marketEvents], async () => {
       for (const portfolio of data.portfolios) {
         const existing = await db.portfolios.get(portfolio.id);
         if (!existing) {
@@ -234,15 +363,54 @@ export const exportService = {
           await db.dailySnapshots.add(snapshot);
         }
       }
+
+      if (data.monthlySnapshots) {
+        for (const snapshot of data.monthlySnapshots) {
+          const existing = await db.monthlySnapshots.get(snapshot.id);
+          if (!existing) {
+            await db.monthlySnapshots.add(snapshot);
+          }
+        }
+      }
+
+      if (data.goals) {
+        for (const goal of data.goals) {
+          const existing = await db.goals.get(goal.id);
+          if (!existing) {
+            await db.goals.add(goal);
+          }
+        }
+      }
+
+      if (data.journalEntries) {
+        for (const entry of data.journalEntries) {
+          const existing = await db.journalEntries.get(entry.id);
+          if (!existing) {
+            await db.journalEntries.add(entry);
+          }
+        }
+      }
+
+      if (data.marketEvents) {
+        for (const event of data.marketEvents) {
+          const existing = await db.marketEvents.get(event.id);
+          if (!existing) {
+            await db.marketEvents.add(event);
+          }
+        }
+      }
     });
   },
 
   async clearAll() {
-    await db.transaction('rw', [db.portfolios, db.wallets, db.dailySnapshots, db.monthlySnapshots], async () => {
+    await db.transaction('rw', [db.portfolios, db.wallets, db.dailySnapshots, db.monthlySnapshots, db.goals, db.journalEntries, db.marketEvents], async () => {
       await db.portfolios.clear();
       await db.wallets.clear();
       await db.dailySnapshots.clear();
       await db.monthlySnapshots.clear();
+      await db.goals.clear();
+      await db.journalEntries.clear();
+      await db.marketEvents.clear();
     });
   }
 };

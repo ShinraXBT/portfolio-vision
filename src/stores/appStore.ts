@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Portfolio, Wallet, DailySnapshot, MonthlySnapshot, Settings } from '../types';
-import { portfolioService, walletService, snapshotService, settingsService, initializeDatabase } from '../services/db';
+import { Portfolio, Wallet, DailySnapshot, MonthlySnapshot, Settings, Goal, JournalEntry, MarketEvent } from '../types';
+import { portfolioService, walletService, snapshotService, settingsService, goalService, journalService, marketEventService, initializeDatabase } from '../services/db';
 import { v4 as uuidv4 } from 'uuid';
 
 interface AppState {
@@ -9,6 +9,9 @@ interface AppState {
   wallets: Wallet[];
   snapshots: DailySnapshot[];
   monthlySnapshots: MonthlySnapshot[];
+  goals: Goal[];
+  journalEntries: JournalEntry[];
+  marketEvents: MarketEvent[];
   settings: Settings | null;
 
   // UI State
@@ -21,6 +24,8 @@ interface AppState {
   activeWallets: Wallet[];
   activeSnapshots: DailySnapshot[];
   activeMonthlySnapshots: MonthlySnapshot[];
+  activeGoals: Goal[];
+  activeJournalEntries: JournalEntry[];
 
   // Actions
   initialize: () => Promise<void>;
@@ -46,6 +51,22 @@ interface AppState {
   updateMonthlySnapshot: (id: string, changes: Partial<MonthlySnapshot>) => Promise<void>;
   deleteMonthlySnapshot: (id: string) => Promise<void>;
 
+  // Goal actions
+  createGoal: (data: Omit<Goal, 'id' | 'createdAt'>) => Promise<Goal>;
+  updateGoal: (id: string, changes: Partial<Goal>) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
+  completeGoal: (id: string) => Promise<void>;
+
+  // Journal actions
+  createJournalEntry: (data: Omit<JournalEntry, 'id' | 'createdAt'>) => Promise<JournalEntry>;
+  updateJournalEntry: (id: string, changes: Partial<JournalEntry>) => Promise<void>;
+  deleteJournalEntry: (id: string) => Promise<void>;
+
+  // Market Event actions
+  createMarketEvent: (data: Omit<MarketEvent, 'id' | 'createdAt'>) => Promise<MarketEvent>;
+  updateMarketEvent: (id: string, changes: Partial<MarketEvent>) => Promise<void>;
+  deleteMarketEvent: (id: string) => Promise<void>;
+
   // Settings actions
   updateSettings: (changes: Partial<Settings>) => Promise<void>;
 
@@ -59,6 +80,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   wallets: [],
   snapshots: [],
   monthlySnapshots: [],
+  goals: [],
+  journalEntries: [],
+  marketEvents: [],
   settings: null,
   activePortfolioId: null,
   isLoading: true,
@@ -88,6 +112,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     return monthlySnapshots.filter(s => s.portfolioId === activePortfolioId);
   },
 
+  get activeGoals() {
+    const { goals, activePortfolioId } = get();
+    if (!activePortfolioId) return [];
+    return goals.filter(g => g.portfolioId === activePortfolioId);
+  },
+
+  get activeJournalEntries() {
+    const { journalEntries, activePortfolioId } = get();
+    if (!activePortfolioId) return [];
+    return journalEntries.filter(e => e.portfolioId === activePortfolioId);
+  },
+
   // Initialize app
   initialize: async () => {
     try {
@@ -95,10 +131,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       await initializeDatabase();
 
-      const [portfolios, wallets, settings] = await Promise.all([
+      const [portfolios, wallets, settings, goals, journalEntries, marketEvents] = await Promise.all([
         portfolioService.getAll(),
         walletService.getAll(),
-        settingsService.get()
+        settingsService.get(),
+        goalService.getAll(),
+        journalService.getAll(),
+        marketEventService.getAll()
       ]);
 
       // Get all daily snapshots
@@ -121,6 +160,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         wallets,
         snapshots: allSnapshots,
         monthlySnapshots: allMonthlySnapshots,
+        goals,
+        journalEntries,
+        marketEvents,
         settings: settings ?? null,
         activePortfolioId,
         isLoading: false
@@ -171,12 +213,16 @@ export const useAppStore = create<AppState>((set, get) => ({
       const newWallets = state.wallets.filter(w => w.portfolioId !== id);
       const newSnapshots = state.snapshots.filter(s => s.portfolioId !== id);
       const newMonthlySnapshots = state.monthlySnapshots.filter(s => s.portfolioId !== id);
+      const newGoals = state.goals.filter(g => g.portfolioId !== id);
+      const newJournalEntries = state.journalEntries.filter(e => e.portfolioId !== id);
 
       return {
         portfolios: newPortfolios,
         wallets: newWallets,
         snapshots: newSnapshots,
         monthlySnapshots: newMonthlySnapshots,
+        goals: newGoals,
+        journalEntries: newJournalEntries,
         activePortfolioId: state.activePortfolioId === id
           ? (newPortfolios[0]?.id ?? null)
           : state.activePortfolioId
@@ -295,6 +341,122 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set(state => ({
       monthlySnapshots: state.monthlySnapshots.filter(s => s.id !== id)
+    }));
+  },
+
+  // Goal actions
+  createGoal: async (data) => {
+    const goal: Goal = {
+      ...data,
+      id: uuidv4(),
+      createdAt: new Date().toISOString()
+    };
+
+    await goalService.create(goal);
+
+    set(state => ({
+      goals: [...state.goals, goal]
+    }));
+
+    return goal;
+  },
+
+  updateGoal: async (id, changes) => {
+    await goalService.update(id, changes);
+
+    set(state => ({
+      goals: state.goals.map(g =>
+        g.id === id ? { ...g, ...changes } : g
+      )
+    }));
+  },
+
+  deleteGoal: async (id) => {
+    await goalService.delete(id);
+
+    set(state => ({
+      goals: state.goals.filter(g => g.id !== id)
+    }));
+  },
+
+  completeGoal: async (id) => {
+    const completedAt = new Date().toISOString();
+    await goalService.markCompleted(id);
+
+    set(state => ({
+      goals: state.goals.map(g =>
+        g.id === id ? { ...g, completedAt } : g
+      )
+    }));
+  },
+
+  // Journal actions
+  createJournalEntry: async (data) => {
+    const entry: JournalEntry = {
+      ...data,
+      id: uuidv4(),
+      createdAt: new Date().toISOString()
+    };
+
+    await journalService.create(entry);
+
+    set(state => ({
+      journalEntries: [...state.journalEntries, entry]
+    }));
+
+    return entry;
+  },
+
+  updateJournalEntry: async (id, changes) => {
+    await journalService.update(id, changes);
+
+    set(state => ({
+      journalEntries: state.journalEntries.map(e =>
+        e.id === id ? { ...e, ...changes, updatedAt: new Date().toISOString() } : e
+      )
+    }));
+  },
+
+  deleteJournalEntry: async (id) => {
+    await journalService.delete(id);
+
+    set(state => ({
+      journalEntries: state.journalEntries.filter(e => e.id !== id)
+    }));
+  },
+
+  // Market Event actions
+  createMarketEvent: async (data) => {
+    const event: MarketEvent = {
+      ...data,
+      id: uuidv4(),
+      createdAt: new Date().toISOString()
+    };
+
+    await marketEventService.create(event);
+
+    set(state => ({
+      marketEvents: [...state.marketEvents, event]
+    }));
+
+    return event;
+  },
+
+  updateMarketEvent: async (id, changes) => {
+    await marketEventService.update(id, changes);
+
+    set(state => ({
+      marketEvents: state.marketEvents.map(e =>
+        e.id === id ? { ...e, ...changes } : e
+      )
+    }));
+  },
+
+  deleteMarketEvent: async (id) => {
+    await marketEventService.delete(id);
+
+    set(state => ({
+      marketEvents: state.marketEvents.filter(e => e.id !== id)
     }));
   },
 

@@ -1,12 +1,11 @@
-import { useState, useRef } from 'react';
-import { Download, Upload, Trash2, Database, AlertTriangle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Download, Upload, Trash2, Database, AlertTriangle, Cloud, Copy, Check, Clock } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { GlassCard, Button, ConfirmModal } from '../components/ui';
 import { useAppStore } from '../stores/appStore';
 import { exportService as dbExportService } from '../services/export';
 import { exportService } from '../services/db';
 import { parseCSV, parseJSON, validateImportedSnapshots } from '../utils/importParser';
-import { v4 as uuidv4 } from 'uuid';
 
 export function Settings() {
   const { activePortfolioId, activePortfolio, wallets, refreshData } = useAppStore();
@@ -17,21 +16,60 @@ export function Settings() {
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeWallets = wallets.filter(w => w.portfolioId === activePortfolioId);
+
+  // Load last backup timestamp from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('portfolio-vision-last-backup');
+    if (saved) setLastBackup(saved);
+  }, []);
+
+  // Save backup timestamp
+  const saveBackupTimestamp = () => {
+    const now = new Date().toISOString();
+    localStorage.setItem('portfolio-vision-last-backup', now);
+    setLastBackup(now);
+  };
 
   // Export handlers
   const handleExportJSON = async () => {
     setIsExporting(true);
     try {
       await dbExportService.downloadAllAsJSON();
+      saveBackupTimestamp();
     } catch (error) {
       console.error('Export failed:', error);
     } finally {
       setIsExporting(false);
     }
+  };
+
+  // Copy backup to clipboard
+  const handleCopyBackup = async () => {
+    try {
+      const data = await exportService.exportAll();
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      setCopied(true);
+      saveBackupTimestamp();
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
+  };
+
+  // Open Google Drive
+  const openGoogleDrive = () => {
+    window.open('https://drive.google.com/drive/my-drive', '_blank');
+  };
+
+  // Open Dropbox
+  const openDropbox = () => {
+    window.open('https://www.dropbox.com/home', '_blank');
   };
 
   const handleExportCSV = async () => {
@@ -269,6 +307,93 @@ export function Settings() {
             <p className="text-sm text-green-400">{importSuccess}</p>
           </div>
         )}
+      </GlassCard>
+
+      {/* Cloud Backup Section */}
+      <GlassCard>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+            <Cloud className="w-5 h-5 text-cyan-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">Cloud Backup</h3>
+            <p className="text-sm text-white/50">Sync your data to the cloud</p>
+          </div>
+        </div>
+
+        {/* Last Backup Info */}
+        {lastBackup && (
+          <div className="glass-subtle p-3 rounded-xl mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-white/50" />
+            <span className="text-sm text-white/70">
+              Last backup: {new Date(lastBackup).toLocaleString()}
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {/* Copy to Clipboard */}
+          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+            <div>
+              <p className="font-medium text-white">Copy Backup to Clipboard</p>
+              <p className="text-sm text-white/50">Copy JSON data to paste anywhere</p>
+            </div>
+            <Button
+              variant="glass"
+              icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              onClick={handleCopyBackup}
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
+          </div>
+
+          {/* Google Drive */}
+          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                  <path d="M7.71 3.5L1.15 15l3.45 6h13.8l3.45-6L15.29 3.5H7.71z" fill="#4285f4"/>
+                  <path d="M15.29 3.5L7.71 3.5l6.57 11.5h9l-3.45-6L15.29 3.5z" fill="#0066da"/>
+                  <path d="M1.15 15l3.45 6h9l-6.57-11.5L1.15 15z" fill="#00ac47"/>
+                  <path d="M14.28 15l-6.57-11.5L1.15 15h13.13z" fill="#00832d"/>
+                  <path d="M22.85 15l-3.45-6-6.57 11.5h9l.02-5.5z" fill="#2684fc"/>
+                  <path d="M7.71 3.5l6.57 11.5H4.6l3.11-11.5z" fill="#ffba00"/>
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium text-white">Google Drive</p>
+                <p className="text-sm text-white/50">Open Drive to upload your backup</p>
+              </div>
+            </div>
+            <Button variant="glass" onClick={openGoogleDrive}>
+              Open
+            </Button>
+          </div>
+
+          {/* Dropbox */}
+          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="#0061ff">
+                  <path d="M6 2l6 4-6 4 6 4-6 4-6-4 6-4-6-4 6-4zM18 2l6 4-6 4 6 4-6 4-6-4 6-4-6-4 6-4zM12 10l6 4-6 4-6-4 6-4z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium text-white">Dropbox</p>
+                <p className="text-sm text-white/50">Open Dropbox to upload your backup</p>
+              </div>
+            </div>
+            <Button variant="glass" onClick={openDropbox}>
+              Open
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <p className="text-sm text-blue-300">
+            <strong>How to backup:</strong> Export your data as JSON, then upload the file to Google Drive or Dropbox for cloud storage. To restore, download the file and import it.
+          </p>
+        </div>
       </GlassCard>
 
       {/* Data Management */}

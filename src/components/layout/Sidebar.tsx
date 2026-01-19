@@ -7,7 +7,11 @@ import {
   Layers,
   Settings,
   ChevronDown,
-  Plus
+  Plus,
+  Target,
+  BookOpen,
+  Newspaper,
+  Cloud
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
 import { useState } from 'react';
@@ -16,6 +20,9 @@ const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/daily', icon: Calendar, label: 'Daily View' },
   { to: '/monthly', icon: Table, label: 'Monthly View' },
+  { to: '/goals', icon: Target, label: 'Goals' },
+  { to: '/journal', icon: BookOpen, label: 'Journal' },
+  { to: '/events', icon: Newspaper, label: 'Market Events' },
   { to: '/wallets', icon: Wallet, label: 'Wallets' },
   { to: '/portfolios', icon: Layers, label: 'Portfolios' },
   { to: '/settings', icon: Settings, label: 'Settings' }

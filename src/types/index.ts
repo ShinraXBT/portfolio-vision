@@ -108,6 +108,61 @@ export interface ExportData {
   portfolios: Portfolio[];
   wallets: Wallet[];
   snapshots: DailySnapshot[];
+  monthlySnapshots?: MonthlySnapshot[];
+  goals?: Goal[];
+  journalEntries?: JournalEntry[];
+  marketEvents?: MarketEvent[];
   exportedAt: string;
   version: string;
+}
+
+// Goal - Portfolio targets
+export interface Goal {
+  id: string;
+  portfolioId: string;
+  name: string;
+  targetValue: number;
+  currentValue?: number; // Calculated from latest snapshot
+  deadline?: string; // Format: "YYYY-MM-DD"
+  createdAt: string;
+  completedAt?: string;
+  color: string;
+  icon?: string; // Emoji or icon name
+}
+
+// Journal Entry - Notes on snapshots/dates
+export interface JournalEntry {
+  id: string;
+  portfolioId: string;
+  date: string; // Format: "YYYY-MM-DD"
+  title: string;
+  content: string;
+  mood?: 'bullish' | 'bearish' | 'neutral';
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Market Event - Notable market events
+export interface MarketEvent {
+  id: string;
+  date: string; // Format: "YYYY-MM-DD"
+  title: string;
+  description?: string;
+  type: 'news' | 'halving' | 'crash' | 'ath' | 'regulation' | 'hack' | 'launch' | 'other';
+  impact: 'positive' | 'negative' | 'neutral';
+  coins?: string[]; // Related coins (e.g., ['bitcoin', 'ethereum'])
+  source?: string; // URL to news source
+  createdAt: string;
+}
+
+// Cloud Backup Settings
+export interface CloudBackupSettings {
+  provider: 'google-drive' | 'dropbox' | 'none';
+  enabled: boolean;
+  lastBackup?: string;
+  autoBackup: boolean;
+  autoBackupFrequency?: 'daily' | 'weekly' | 'monthly';
+  accessToken?: string;
+  refreshToken?: string;
 }

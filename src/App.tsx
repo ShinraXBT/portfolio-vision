@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout';
-import { Dashboard, DailyView, MonthlyView, WalletManager, Portfolios, Settings } from './pages';
+import { Dashboard, DailyView, MonthlyView, Goals, Journal, MarketEvents, WalletManager, Portfolios, Settings } from './pages';
 import { useAppStore } from './stores/appStore';
 
 function App() {
@@ -29,6 +29,9 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/daily" element={<DailyView />} />
           <Route path="/monthly" element={<MonthlyView />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/journal" element={<Journal />} />
+          <Route path="/events" element={<MarketEvents />} />
           <Route path="/wallets" element={<WalletManager />} />
           <Route path="/portfolios" element={<Portfolios />} />
           <Route path="/settings" element={<Settings />} />
