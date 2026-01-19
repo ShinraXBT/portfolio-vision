@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Trophy, TrendingUp, TrendingDown, Calendar, Target, BarChart3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Trophy, TrendingUp, TrendingDown, Calendar, Target, BarChart3, LineChart } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { GlassCard, Button, IconButton, ConfirmModal } from '../components/ui';
+import { MonthlyAreaChart, MonthlyBarChart, CryptoPriceChart } from '../components/charts';
 import { AddMonthlySnapshotModal } from '../components/modals';
 import { useAppStore } from '../stores/appStore';
 import { formatCurrency, formatPercent, getMonthName } from '../utils/formatters';
@@ -40,6 +41,21 @@ export function MonthlyView() {
 
     return data;
   }, [activeMonthlySnapshots, currentYear]);
+
+  // Prepare chart data
+  const chartData = useMemo(() => {
+    return monthlyData.map(m => ({
+      month: m.monthStr,
+      monthName: m.monthName,
+      value: m.snapshot?.totalUsd ?? 0,
+      delta: m.snapshot?.deltaUsd ?? 0,
+      deltaPercent: m.snapshot?.deltaPercent ?? 0,
+      btcPrice: m.snapshot?.btcPrice ?? 0,
+      ethPrice: m.snapshot?.ethPrice ?? 0
+    }));
+  }, [monthlyData]);
+
+  const hasChartData = chartData.some(d => d.value > 0);
 
   // Calculate yearly stats
   const yearlyStats = useMemo(() => {
@@ -229,6 +245,51 @@ export function MonthlyView() {
         </GlassCard>
       ) : (
         <>
+          {/* Charts Section */}
+          {hasChartData && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Portfolio Evolution */}
+              <GlassCard>
+                <div className="flex items-center gap-2 mb-4">
+                  <LineChart className="w-5 h-5 text-white/50" />
+                  <h3 className="text-lg font-semibold text-white">Portfolio Evolution</h3>
+                </div>
+                <MonthlyAreaChart data={chartData} height={220} />
+              </GlassCard>
+
+              {/* Monthly Deltas */}
+              <GlassCard>
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-white/50" />
+                  <h3 className="text-lg font-semibold text-white">Monthly Performance</h3>
+                </div>
+                <MonthlyBarChart data={chartData} height={220} />
+              </GlassCard>
+            </div>
+          )}
+
+          {/* Crypto Prices Chart */}
+          {hasChartData && chartData.some(d => d.btcPrice > 0) && (
+            <GlassCard>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold text-white">Reference Prices</h3>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                      <span className="text-white/70">BTC</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                      <span className="text-white/70">ETH</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <CryptoPriceChart data={chartData} height={180} />
+            </GlassCard>
+          )}
+
           {/* Monthly Table */}
           <GlassCard padding="none">
             <div className="overflow-x-auto">
