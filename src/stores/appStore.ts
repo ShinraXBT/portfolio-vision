@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Portfolio, Wallet, DailySnapshot, Settings } from '../types';
+import { Portfolio, Wallet, DailySnapshot, MonthlySnapshot, Settings } from '../types';
 import { portfolioService, walletService, snapshotService, settingsService, initializeDatabase } from '../services/db';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,6 +8,7 @@ interface AppState {
   portfolios: Portfolio[];
   wallets: Wallet[];
   snapshots: DailySnapshot[];
+  monthlySnapshots: MonthlySnapshot[];
   settings: Settings | null;
 
   // UI State
@@ -19,6 +20,7 @@ interface AppState {
   activePortfolio: Portfolio | null;
   activeWallets: Wallet[];
   activeSnapshots: DailySnapshot[];
+  activeMonthlySnapshots: MonthlySnapshot[];
 
   // Actions
   initialize: () => Promise<void>;
@@ -34,10 +36,15 @@ interface AppState {
   updateWallet: (id: string, changes: Partial<Wallet>) => Promise<void>;
   deleteWallet: (id: string) => Promise<void>;
 
-  // Snapshot actions
+  // Daily Snapshot actions
   createSnapshot: (data: Omit<DailySnapshot, 'id'>) => Promise<DailySnapshot>;
   updateSnapshot: (id: string, changes: Partial<DailySnapshot>) => Promise<void>;
   deleteSnapshot: (id: string) => Promise<void>;
+
+  // Monthly Snapshot actions
+  createMonthlySnapshot: (data: Omit<MonthlySnapshot, 'id'>) => Promise<MonthlySnapshot>;
+  updateMonthlySnapshot: (id: string, changes: Partial<MonthlySnapshot>) => Promise<void>;
+  deleteMonthlySnapshot: (id: string) => Promise<void>;
 
   // Settings actions
   updateSettings: (changes: Partial<Settings>) => Promise<void>;
@@ -51,6 +58,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   portfolios: [],
   wallets: [],
   snapshots: [],
+  monthlySnapshots: [],
   settings: null,
   activePortfolioId: null,
   isLoading: true,
@@ -74,6 +82,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     return snapshots.filter(s => s.portfolioId === activePortfolioId);
   },
 
+  get activeMonthlySnapshots() {
+    const { monthlySnapshots, activePortfolioId } = get();
+    if (!activePortfolioId) return [];
+    return monthlySnapshots.filter(s => s.portfolioId === activePortfolioId);
+  },
+
   // Initialize app
   initialize: async () => {
     try {
@@ -81,18 +95,22 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       await initializeDatabase();
 
-      const [portfolios, wallets, snapshots, settings] = await Promise.all([
+      const [portfolios, wallets, settings] = await Promise.all([
         portfolioService.getAll(),
         walletService.getAll(),
-        snapshotService.getDailySnapshots(''),
         settingsService.get()
       ]);
 
-      // Get all snapshots
+      // Get all daily snapshots
       const allSnapshots: DailySnapshot[] = [];
+      const allMonthlySnapshots: MonthlySnapshot[] = [];
+
       for (const portfolio of portfolios) {
         const pSnapshots = await snapshotService.getDailySnapshots(portfolio.id);
         allSnapshots.push(...pSnapshots);
+
+        const mSnapshots = await snapshotService.getMonthlySnapshots(portfolio.id);
+        allMonthlySnapshots.push(...mSnapshots);
       }
 
       // Set active portfolio to first one if exists
@@ -102,6 +120,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         portfolios,
         wallets,
         snapshots: allSnapshots,
+        monthlySnapshots: allMonthlySnapshots,
         settings: settings ?? null,
         activePortfolioId,
         isLoading: false
@@ -151,11 +170,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       const newPortfolios = state.portfolios.filter(p => p.id !== id);
       const newWallets = state.wallets.filter(w => w.portfolioId !== id);
       const newSnapshots = state.snapshots.filter(s => s.portfolioId !== id);
+      const newMonthlySnapshots = state.monthlySnapshots.filter(s => s.portfolioId !== id);
 
       return {
         portfolios: newPortfolios,
         wallets: newWallets,
         snapshots: newSnapshots,
+        monthlySnapshots: newMonthlySnapshots,
         activePortfolioId: state.activePortfolioId === id
           ? (newPortfolios[0]?.id ?? null)
           : state.activePortfolioId
@@ -197,7 +218,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
   },
 
-  // Snapshot actions
+  // Daily Snapshot actions
   createSnapshot: async (data) => {
     const snapshot: DailySnapshot = {
       ...data,
@@ -234,6 +255,46 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set(state => ({
       snapshots: state.snapshots.filter(s => s.id !== id)
+    }));
+  },
+
+  // Monthly Snapshot actions
+  createMonthlySnapshot: async (data) => {
+    const snapshot: MonthlySnapshot = {
+      ...data,
+      id: uuidv4()
+    };
+
+    await snapshotService.createMonthlySnapshot(snapshot);
+
+    set(state => {
+      // Remove existing snapshot for same month if exists
+      const filtered = state.monthlySnapshots.filter(
+        s => !(s.portfolioId === snapshot.portfolioId && s.month === snapshot.month)
+      );
+      return {
+        monthlySnapshots: [...filtered, snapshot]
+      };
+    });
+
+    return snapshot;
+  },
+
+  updateMonthlySnapshot: async (id, changes) => {
+    await snapshotService.updateMonthlySnapshot(id, changes);
+
+    set(state => ({
+      monthlySnapshots: state.monthlySnapshots.map(s =>
+        s.id === id ? { ...s, ...changes } : s
+      )
+    }));
+  },
+
+  deleteMonthlySnapshot: async (id) => {
+    await snapshotService.deleteMonthlySnapshot(id);
+
+    set(state => ({
+      monthlySnapshots: state.monthlySnapshots.filter(s => s.id !== id)
     }));
   },
 

@@ -26,9 +26,11 @@ export function calculatePerformanceMetrics(snapshots: DailySnapshot[]): Perform
     };
   }
 
+  // Sort by date descending (newest first)
   const sorted = [...snapshots].sort((a, b) => b.date.localeCompare(a.date));
   const latest = sorted[0];
   const total = latest.totalUsd;
+  const latestDate = new Date(latest.date);
 
   // Find ATH
   let ath = 0;
@@ -40,26 +42,41 @@ export function calculatePerformanceMetrics(snapshots: DailySnapshot[]): Perform
     }
   }
 
-  // Get snapshot from N days ago
+  // Find snapshot closest to N days before the latest snapshot (not today)
   const getSnapshotDaysAgo = (days: number): DailySnapshot | undefined => {
-    const targetDate = new Date();
+    const targetDate = new Date(latestDate);
     targetDate.setDate(targetDate.getDate() - days);
     const targetDateStr = targetDate.toISOString().split('T')[0];
 
-    // Find closest snapshot on or before target date
+    // Find the snapshot closest to target date (on or before)
+    let closest: DailySnapshot | undefined;
     for (const snapshot of sorted) {
-      if (snapshot.date <= targetDateStr) {
-        return snapshot;
+      if (snapshot.date <= targetDateStr && snapshot.date !== latest.date) {
+        if (!closest || snapshot.date > closest.date) {
+          closest = snapshot;
+        }
       }
     }
-    return sorted[sorted.length - 1]; // Return oldest if no match
+
+    // If no snapshot found before target, use the oldest available
+    if (!closest && sorted.length > 1) {
+      closest = sorted[sorted.length - 1];
+    }
+
+    return closest;
   };
 
-  const snapshot1d = getSnapshotDaysAgo(1);
+  // Find exact previous snapshot (not based on days, but the actual previous entry)
+  const getPreviousSnapshot = (): DailySnapshot | undefined => {
+    return sorted.length > 1 ? sorted[1] : undefined;
+  };
+
+  // For 24h change, use the previous snapshot if it exists
+  const prevSnapshot = getPreviousSnapshot();
   const snapshot7d = getSnapshotDaysAgo(7);
   const snapshot30d = getSnapshotDaysAgo(30);
 
-  const variation24h = snapshot1d ? calculateVariation(total, snapshot1d.totalUsd) : { amount: 0, percent: 0 };
+  const variation24h = prevSnapshot ? calculateVariation(total, prevSnapshot.totalUsd) : { amount: 0, percent: 0 };
   const variation7d = snapshot7d ? calculateVariation(total, snapshot7d.totalUsd) : { amount: 0, percent: 0 };
   const variation30d = snapshot30d ? calculateVariation(total, snapshot30d.totalUsd) : { amount: 0, percent: 0 };
 
@@ -94,32 +111,6 @@ export function calculateWalletAllocations(
       color: wallet?.color ?? '#888888'
     };
   }).filter(a => a.value > 0);
-}
-
-// Calculate monthly delta from daily snapshots
-export function calculateMonthlyDelta(
-  snapshots: DailySnapshot[],
-  year: number,
-  month: number
-): { start: number; end: number; deltaUsd: number; deltaPercent: number } {
-  const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-  const monthSnapshots = snapshots.filter(s => s.date.startsWith(monthStr));
-
-  if (monthSnapshots.length === 0) {
-    return { start: 0, end: 0, deltaUsd: 0, deltaPercent: 0 };
-  }
-
-  const sorted = [...monthSnapshots].sort((a, b) => a.date.localeCompare(b.date));
-  const start = sorted[0].totalUsd;
-  const end = sorted[sorted.length - 1].totalUsd;
-  const variation = calculateVariation(end, start);
-
-  return {
-    start,
-    end,
-    deltaUsd: variation.amount,
-    deltaPercent: variation.percent
-  };
 }
 
 // Get chart data from snapshots

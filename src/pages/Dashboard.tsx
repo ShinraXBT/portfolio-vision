@@ -97,20 +97,20 @@ export function Dashboard() {
               icon={<Wallet className="w-5 h-5" />}
             />
             <StatCard
-              label="24h Change"
+              label="vs Previous"
               value={formatCurrency(metrics.change24h)}
               change={formatPercent(metrics.change24hPercent)}
               changeType={metrics.change24h >= 0 ? 'positive' : 'negative'}
               icon={metrics.change24h >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
             />
             <StatCard
-              label="7d Change"
+              label="vs 7 days ago"
               value={formatCurrency(metrics.change7d)}
               change={formatPercent(metrics.change7dPercent)}
               changeType={metrics.change7d >= 0 ? 'positive' : 'negative'}
             />
             <StatCard
-              label="30d Change"
+              label="vs 30 days ago"
               value={formatCurrency(metrics.change30d)}
               change={formatPercent(metrics.change30dPercent)}
               changeType={metrics.change30d >= 0 ? 'positive' : 'negative'}

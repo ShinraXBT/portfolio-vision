@@ -164,10 +164,18 @@ export const snapshotService = {
       .equals([snapshot.portfolioId, snapshot.month])
       .first();
     if (existing) {
-      await db.monthlySnapshots.update(existing.id, snapshot);
+      await db.monthlySnapshots.put({ ...snapshot, id: existing.id });
       return existing.id;
     }
     return db.monthlySnapshots.add(snapshot);
+  },
+
+  async updateMonthlySnapshot(id: string, changes: Partial<MonthlySnapshot>): Promise<number> {
+    return db.monthlySnapshots.update(id, changes);
+  },
+
+  async deleteMonthlySnapshot(id: string): Promise<void> {
+    await db.monthlySnapshots.delete(id);
   }
 };
 
