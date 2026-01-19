@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, TrendingUp, TrendingDown, Calendar, ArrowUpRight, Wallet } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { GlassCard, StatCard, Button } from '../components/ui';
@@ -16,6 +17,7 @@ import {
 import { coingeckoService } from '../services/coingecko';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { activePortfolioId, wallets, snapshots, activePortfolio } = useAppStore();
   const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false);
   const [referencePrices, setReferencePrices] = useState({ btc: 0, eth: 0 });
@@ -196,7 +198,7 @@ export function Dashboard() {
                   variant="ghost"
                   fullWidth
                   icon={<Calendar className="w-4 h-4" />}
-                  onClick={() => window.location.href = '/daily'}
+                  onClick={() => navigate('/daily')}
                 >
                   View Calendar
                 </Button>

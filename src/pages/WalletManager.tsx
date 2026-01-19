@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Wallet, ExternalLink } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { GlassCard, Button, IconButton, ConfirmModal } from '../components/ui';
@@ -9,6 +10,7 @@ import { supportedChains } from '../services/coingecko';
 import { Wallet as WalletType } from '../types';
 
 export function WalletManager() {
+  const navigate = useNavigate();
   const { activePortfolioId, wallets, deleteWallet, activePortfolio } = useAppStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -72,7 +74,7 @@ export function WalletManager() {
           <Button
             variant="primary"
             icon={<Plus className="w-4 h-4" />}
-            onClick={() => window.location.href = '/portfolios'}
+            onClick={() => navigate('/portfolios')}
           >
             Create Portfolio
           </Button>
