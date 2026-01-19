@@ -82,19 +82,19 @@ export function Goals() {
 
       {!activePortfolioId ? (
         <GlassCard className="text-center py-12">
-          <p className="text-white/50">Create a portfolio first</p>
+          <p className="text-[var(--color-text-muted)]">Create a portfolio first</p>
         </GlassCard>
       ) : (
         <>
           {/* Current Value Reference */}
-          <GlassCard className="glass-subtle">
+          <GlassCard className="bg-[var(--color-bg-tertiary)] rounded-xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
                 <Target className="w-6 h-6 text-purple-400" />
               </div>
               <div>
-                <p className="text-sm text-white/50">Current Portfolio Value</p>
-                <p className="text-2xl font-bold text-white">{formatCurrency(currentValue)}</p>
+                <p className="text-sm text-[var(--color-text-muted)]">Current Portfolio Value</p>
+                <p className="text-2xl font-bold text-[var(--color-text-primary)]">{formatCurrency(currentValue)}</p>
               </div>
             </div>
           </GlassCard>
@@ -102,7 +102,7 @@ export function Goals() {
           {/* Active Goals */}
           {pendingGoals.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Active Goals</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Active Goals</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pendingGoals.map(goal => {
                   const progress = calculateProgress(goal);
@@ -119,8 +119,8 @@ export function Goals() {
                             {goal.icon || '🎯'}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-white">{goal.name}</h4>
-                            <p className="text-sm text-white/50">
+                            <h4 className="font-semibold text-[var(--color-text-primary)]">{goal.name}</h4>
+                            <p className="text-sm text-[var(--color-text-muted)]">
                               Target: {formatCurrency(goal.targetValue)}
                             </p>
                           </div>
@@ -154,12 +154,12 @@ export function Goals() {
                       {/* Progress Bar */}
                       <div className="mb-3">
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-white/70">{formatCurrency(currentValue)}</span>
-                          <span className={isAchieved ? 'text-positive font-medium' : 'text-white/50'}>
+                          <span className="text-[var(--color-text-secondary)]">{formatCurrency(currentValue)}</span>
+                          <span className={isAchieved ? 'text-positive font-medium' : 'text-[var(--color-text-muted)]'}>
                             {progress.toFixed(1)}%
                           </span>
                         </div>
-                        <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-3 bg-[var(--color-bg-tertiary)] rounded-full overflow-hidden">
                           <div
                             className={`h-full transition-all duration-500 ${getProgressColor(progress)}`}
                             style={{ width: `${progress}%` }}
@@ -169,7 +169,7 @@ export function Goals() {
 
                       {/* Remaining & Deadline */}
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/50">
+                        <span className="text-[var(--color-text-muted)]">
                           {isAchieved ? (
                             <span className="text-positive">Goal achieved!</span>
                           ) : (
@@ -177,7 +177,7 @@ export function Goals() {
                           )}
                         </span>
                         {goal.deadline && (
-                          <span className="flex items-center gap-1 text-white/50">
+                          <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
                             <Calendar className="w-3 h-3" />
                             {formatDate(goal.deadline)}
                           </span>
@@ -193,20 +193,20 @@ export function Goals() {
           {/* Completed Goals */}
           {completedGoals.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-400" />
                 Completed Goals
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {completedGoals.map(goal => (
-                  <GlassCard key={goal.id} className="glass-subtle">
+                  <GlassCard key={goal.id} className="bg-[var(--color-bg-tertiary)] rounded-xl">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
                         <CheckCircle2 className="w-5 h-5 text-positive" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-white truncate">{goal.name}</h4>
-                        <p className="text-sm text-white/50">
+                        <h4 className="font-medium text-[var(--color-text-primary)] truncate">{goal.name}</h4>
+                        <p className="text-sm text-[var(--color-text-muted)]">
                           {formatCurrency(goal.targetValue)}
                         </p>
                       </div>
@@ -218,7 +218,7 @@ export function Goals() {
                       />
                     </div>
                     {goal.completedAt && (
-                      <p className="text-xs text-white/30 mt-2">
+                      <p className="text-xs text-[var(--color-text-muted)] mt-2">
                         Completed {formatDate(goal.completedAt)}
                       </p>
                     )}
@@ -231,9 +231,9 @@ export function Goals() {
           {/* Empty State */}
           {activeGoals.length === 0 && (
             <GlassCard className="text-center py-12">
-              <Target className="w-12 h-12 mx-auto mb-4 text-white/30" />
-              <h3 className="text-lg font-medium text-white mb-2">No goals yet</h3>
-              <p className="text-white/50 mb-4">
+              <Target className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+              <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No goals yet</h3>
+              <p className="text-[var(--color-text-muted)] mb-4">
                 Set portfolio targets to track your progress
               </p>
               <Button

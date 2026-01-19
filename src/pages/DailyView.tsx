@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { GlassCard, Button, IconButton } from '../components/ui';
 import { AddSnapshotModal } from '../components/modals';
@@ -89,11 +89,11 @@ export function DailyView() {
   };
 
   const getColorForPerformance = (percent: number) => {
-    if (percent > 5) return 'bg-green-500/30';
-    if (percent > 0) return 'bg-green-500/15';
-    if (percent < -5) return 'bg-red-500/30';
-    if (percent < 0) return 'bg-red-500/15';
-    return 'bg-white/5';
+    if (percent > 5) return 'bg-[var(--color-positive)] bg-opacity-30';
+    if (percent > 0) return 'bg-[var(--color-positive)] bg-opacity-15';
+    if (percent < -5) return 'bg-[var(--color-negative)] bg-opacity-30';
+    if (percent < 0) return 'bg-[var(--color-negative)] bg-opacity-15';
+    return 'bg-[var(--color-bg-tertiary)]';
   };
 
   const selectedSnapshot = selectedDate ? snapshotMap.get(selectedDate) : null;
@@ -127,7 +127,7 @@ export function DailyView() {
               icon={<ChevronLeft className="w-5 h-5" />}
               onClick={goToPrevMonth}
             />
-            <h2 className="text-xl font-semibold text-white min-w-[180px] text-center">
+            <h2 className="text-xl font-semibold text-[var(--color-text-primary)] min-w-[180px] text-center">
               {getMonthName(month + 1)} {year}
             </h2>
             <IconButton
@@ -145,7 +145,7 @@ export function DailyView() {
           {weekDays.map(day => (
             <div
               key={day}
-              className="text-center text-sm font-medium text-white/50 py-2"
+              className="text-center text-sm font-medium text-[var(--color-text-muted)] py-2"
             >
               {day}
             </div>
@@ -165,17 +165,17 @@ export function DailyView() {
                 onClick={() => !isFuture && handleDayClick(dateStr)}
                 disabled={isFuture}
                 className={`
-                  relative aspect-square p-2 rounded-lg transition-all duration-200
-                  ${isCurrentMonth ? 'text-white' : 'text-white/30'}
-                  ${isToday ? 'ring-2 ring-purple-500' : ''}
-                  ${isFuture ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/10 cursor-pointer'}
-                  ${snapshot ? getColorForPerformance(snapshot.variationPercent) : 'bg-white/5'}
+                  relative aspect-square p-2 rounded-xl transition-all duration-200
+                  ${isCurrentMonth ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}
+                  ${isToday ? 'ring-2 ring-[var(--color-accent)]' : ''}
+                  ${isFuture ? 'opacity-30 cursor-not-allowed' : 'hover:bg-[var(--color-bg-tertiary)] cursor-pointer'}
+                  ${snapshot ? getColorForPerformance(snapshot.variationPercent) : 'bg-[var(--color-bg-tertiary)] bg-opacity-50'}
                 `}
               >
                 <span className="text-sm font-medium">{date.getDate()}</span>
                 {snapshot && (
                   <div className="absolute bottom-1 left-1 right-1">
-                    <p className="text-[10px] text-white/70 truncate">
+                    <p className="text-[10px] text-[var(--color-text-secondary)] truncate font-medium">
                       {formatCurrency(snapshot.totalUsd, 'USD', { compact: true })}
                     </p>
                   </div>
@@ -186,26 +186,26 @@ export function DailyView() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-white/10">
+        <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-[var(--color-border)]">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-green-500/30" />
-            <span className="text-xs text-white/50">+5%</span>
+            <div className="w-4 h-4 rounded bg-[var(--color-positive)] opacity-30" />
+            <span className="text-xs text-[var(--color-text-muted)]">+5%</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-green-500/15" />
-            <span className="text-xs text-white/50">Positive</span>
+            <div className="w-4 h-4 rounded bg-[var(--color-positive)] opacity-15" />
+            <span className="text-xs text-[var(--color-text-muted)]">Positive</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-white/5" />
-            <span className="text-xs text-white/50">No change</span>
+            <div className="w-4 h-4 rounded bg-[var(--color-bg-tertiary)]" />
+            <span className="text-xs text-[var(--color-text-muted)]">No change</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-red-500/15" />
-            <span className="text-xs text-white/50">Negative</span>
+            <div className="w-4 h-4 rounded bg-[var(--color-negative)] opacity-15" />
+            <span className="text-xs text-[var(--color-text-muted)]">Negative</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-red-500/30" />
-            <span className="text-xs text-white/50">-5%</span>
+            <div className="w-4 h-4 rounded bg-[var(--color-negative)] opacity-30" />
+            <span className="text-xs text-[var(--color-text-muted)]">-5%</span>
           </div>
         </div>
       </GlassCard>
@@ -213,37 +213,42 @@ export function DailyView() {
       {/* Selected Day Detail */}
       {selectedSnapshot && (
         <GlassCard>
-          <h3 className="text-lg font-semibold text-white mb-4">
-            {new Date(selectedSnapshot.date).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </h3>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-bg)] flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-[var(--color-accent)]" />
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              {new Date(selectedSnapshot.date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </h3>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="glass-subtle p-4 rounded-xl">
-              <p className="text-sm text-white/50">Total</p>
-              <p className="text-2xl font-bold text-white">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">Total</p>
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">
                 {formatCurrency(selectedSnapshot.totalUsd)}
               </p>
             </div>
-            <div className="glass-subtle p-4 rounded-xl">
-              <p className="text-sm text-white/50">Change</p>
-              <p className={`text-2xl font-bold ${selectedSnapshot.variationUsd >= 0 ? 'text-positive' : 'text-negative'}`}>
+            <div className="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">Change</p>
+              <p className={`text-2xl font-bold ${selectedSnapshot.variationUsd >= 0 ? 'text-[var(--color-positive)]' : 'text-[var(--color-negative)]'}`}>
                 {formatCurrency(selectedSnapshot.variationUsd)}
               </p>
             </div>
-            <div className="glass-subtle p-4 rounded-xl">
-              <p className="text-sm text-white/50">Variation</p>
-              <p className={`text-2xl font-bold ${selectedSnapshot.variationPercent >= 0 ? 'text-positive' : 'text-negative'}`}>
+            <div className="p-4 rounded-xl bg-[var(--color-bg-tertiary)]">
+              <p className="text-sm text-[var(--color-text-muted)] mb-1">Variation</p>
+              <p className={`text-2xl font-bold ${selectedSnapshot.variationPercent >= 0 ? 'text-[var(--color-positive)]' : 'text-[var(--color-negative)]'}`}>
                 {formatPercent(selectedSnapshot.variationPercent)}
               </p>
             </div>
           </div>
 
-          <h4 className="text-sm font-medium text-white/70 mb-2">Wallet Breakdown</h4>
+          <h4 className="text-sm font-medium text-[var(--color-text-muted)] mb-3">Wallet Breakdown</h4>
           <div className="space-y-2">
             {selectedSnapshot.walletBalances.map(balance => {
               const wallet = activeWallets.find(w => w.id === balance.walletId);
@@ -252,16 +257,16 @@ export function DailyView() {
               return (
                 <div
                   key={balance.walletId}
-                  className="flex items-center justify-between glass-subtle p-3 rounded-lg"
+                  className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-bg-tertiary)]"
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: wallet.color }}
                     />
-                    <span className="text-white">{wallet.name}</span>
+                    <span className="text-[var(--color-text-primary)] font-medium">{wallet.name}</span>
                   </div>
-                  <span className="font-medium text-white">
+                  <span className="font-semibold text-[var(--color-text-primary)]">
                     {formatCurrency(balance.valueUsd)}
                   </span>
                 </div>

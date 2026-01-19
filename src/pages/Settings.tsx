@@ -217,16 +217,16 @@ export function Settings() {
             <Download className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">Export Data</h3>
-            <p className="text-sm text-white/50">Download your portfolio data</p>
+            <h3 className="font-semibold text-[var(--color-text-primary)]">Export Data</h3>
+            <p className="text-sm text-[var(--color-text-muted)]">Download your portfolio data</p>
           </div>
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+          <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl">
             <div>
-              <p className="font-medium text-white">Full Backup (JSON)</p>
-              <p className="text-sm text-white/50">All portfolios, wallets, and snapshots</p>
+              <p className="font-medium text-[var(--color-text-primary)]">Full Backup (JSON)</p>
+              <p className="text-sm text-[var(--color-text-muted)]">All portfolios, wallets, and snapshots</p>
             </div>
             <Button
               variant="secondary"
@@ -238,10 +238,10 @@ export function Settings() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+          <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl">
             <div>
-              <p className="font-medium text-white">Current Portfolio (CSV)</p>
-              <p className="text-sm text-white/50">
+              <p className="font-medium text-[var(--color-text-primary)]">Current Portfolio (CSV)</p>
+              <p className="text-sm text-[var(--color-text-muted)]">
                 {activePortfolio ? activePortfolio.name : 'No portfolio selected'}
               </p>
             </div>
@@ -265,8 +265,8 @@ export function Settings() {
             <Upload className="w-5 h-5 text-green-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">Import Data</h3>
-            <p className="text-sm text-white/50">Restore from backup or import CSV</p>
+            <h3 className="font-semibold text-[var(--color-text-primary)]">Import Data</h3>
+            <p className="text-sm text-[var(--color-text-muted)]">Restore from backup or import CSV</p>
           </div>
         </div>
 
@@ -278,11 +278,11 @@ export function Settings() {
           className="hidden"
         />
 
-        <div className="glass-subtle p-4 rounded-xl mb-4">
-          <p className="text-sm text-white/70 mb-3">Supported formats:</p>
-          <ul className="text-sm text-white/50 space-y-1">
-            <li>• <strong className="text-white/70">JSON</strong>: Full backup restore (portfolios, wallets, snapshots)</li>
-            <li>• <strong className="text-white/70">CSV</strong>: Import snapshots with columns: Date, Wallet1, Wallet2, ...</li>
+        <div className="bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl mb-4">
+          <p className="text-sm text-[var(--color-text-secondary)] mb-3">Supported formats:</p>
+          <ul className="text-sm text-[var(--color-text-muted)] space-y-1">
+            <li>• <strong className="text-[var(--color-text-secondary)]">JSON</strong>: Full backup restore (portfolios, wallets, snapshots)</li>
+            <li>• <strong className="text-[var(--color-text-secondary)]">CSV</strong>: Import snapshots with columns: Date, Wallet1, Wallet2, ...</li>
           </ul>
         </div>
 
@@ -316,16 +316,16 @@ export function Settings() {
             <Cloud className="w-5 h-5 text-cyan-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">Cloud Backup</h3>
-            <p className="text-sm text-white/50">Sync your data to the cloud</p>
+            <h3 className="font-semibold text-[var(--color-text-primary)]">Cloud Backup</h3>
+            <p className="text-sm text-[var(--color-text-muted)]">Sync your data to the cloud</p>
           </div>
         </div>
 
         {/* Last Backup Info */}
         {lastBackup && (
-          <div className="glass-subtle p-3 rounded-xl mb-4 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-white/50" />
-            <span className="text-sm text-white/70">
+          <div className="bg-[var(--color-bg-tertiary)] rounded-xl p-3 rounded-xl mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[var(--color-text-muted)]" />
+            <span className="text-sm text-[var(--color-text-secondary)]">
               Last backup: {new Date(lastBackup).toLocaleString()}
             </span>
           </div>
@@ -333,10 +333,10 @@ export function Settings() {
 
         <div className="space-y-3">
           {/* Copy to Clipboard */}
-          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+          <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl">
             <div>
-              <p className="font-medium text-white">Copy Backup to Clipboard</p>
-              <p className="text-sm text-white/50">Copy JSON data to paste anywhere</p>
+              <p className="font-medium text-[var(--color-text-primary)]">Copy Backup to Clipboard</p>
+              <p className="text-sm text-[var(--color-text-muted)]">Copy JSON data to paste anywhere</p>
             </div>
             <Button
               variant="secondary"
@@ -348,9 +348,9 @@ export function Settings() {
           </div>
 
           {/* Google Drive */}
-          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+          <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[var(--color-bg-tertiary)] flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
                   <path d="M7.71 3.5L1.15 15l3.45 6h13.8l3.45-6L15.29 3.5H7.71z" fill="#4285f4"/>
                   <path d="M15.29 3.5L7.71 3.5l6.57 11.5h9l-3.45-6L15.29 3.5z" fill="#0066da"/>
@@ -361,8 +361,8 @@ export function Settings() {
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">Google Drive</p>
-                <p className="text-sm text-white/50">Open Drive to upload your backup</p>
+                <p className="font-medium text-[var(--color-text-primary)]">Google Drive</p>
+                <p className="text-sm text-[var(--color-text-muted)]">Open Drive to upload your backup</p>
               </div>
             </div>
             <Button variant="secondary" onClick={openGoogleDrive}>
@@ -371,16 +371,16 @@ export function Settings() {
           </div>
 
           {/* Dropbox */}
-          <div className="flex items-center justify-between glass-subtle p-4 rounded-xl">
+          <div className="flex items-center justify-between bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[var(--color-bg-tertiary)] flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-5 h-5" fill="#0061ff">
                   <path d="M6 2l6 4-6 4 6 4-6 4-6-4 6-4-6-4 6-4zM18 2l6 4-6 4 6 4-6 4-6-4 6-4-6-4 6-4zM12 10l6 4-6 4-6-4 6-4z"/>
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-white">Dropbox</p>
-                <p className="text-sm text-white/50">Open Dropbox to upload your backup</p>
+                <p className="font-medium text-[var(--color-text-primary)]">Dropbox</p>
+                <p className="text-sm text-[var(--color-text-muted)]">Open Dropbox to upload your backup</p>
               </div>
             </div>
             <Button variant="secondary" onClick={openDropbox}>
@@ -403,16 +403,16 @@ export function Settings() {
             <Database className="w-5 h-5 text-purple-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-white">Data Storage</h3>
-            <p className="text-sm text-white/50">Your data is stored locally in IndexedDB</p>
+            <h3 className="font-semibold text-[var(--color-text-primary)]">Data Storage</h3>
+            <p className="text-sm text-[var(--color-text-muted)]">Your data is stored locally in IndexedDB</p>
           </div>
         </div>
 
-        <div className="glass-subtle p-4 rounded-xl mb-4">
+        <div className="bg-[var(--color-bg-tertiary)] rounded-xl p-4 rounded-xl mb-4">
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-[var(--color-text-secondary)]">
                 All your data is stored locally in your browser. Clearing your browser data will delete your portfolios.
                 Make sure to export backups regularly.
               </p>
@@ -431,8 +431,8 @@ export function Settings() {
 
       {/* About Section */}
       <GlassCard>
-        <h3 className="font-semibold text-white mb-4">About Portfolio Vision</h3>
-        <div className="space-y-2 text-sm text-white/50">
+        <h3 className="font-semibold text-[var(--color-text-primary)] mb-4">About Portfolio Vision</h3>
+        <div className="space-y-2 text-sm text-[var(--color-text-muted)]">
           <p>Version 1.0.0</p>
           <p>A privacy-first crypto portfolio tracker with 100% local storage.</p>
           <p>Built with React, Tailwind CSS, and IndexedDB.</p>

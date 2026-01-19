@@ -10,7 +10,7 @@ import { AddJournalEntryModal } from '../components/modals/AddJournalEntryModal'
 const MOOD_CONFIG = {
   bullish: { icon: TrendingUp, color: 'text-positive', bg: 'bg-green-500/20', label: 'Bullish' },
   bearish: { icon: TrendingDown, color: 'text-negative', bg: 'bg-red-500/20', label: 'Bearish' },
-  neutral: { icon: Minus, color: 'text-white/50', bg: 'bg-white/10', label: 'Neutral' }
+  neutral: { icon: Minus, color: 'text-[var(--color-text-muted)]', bg: 'bg-[var(--color-bg-tertiary)]', label: 'Neutral' }
 };
 
 export function Journal() {
@@ -90,7 +90,7 @@ export function Journal() {
 
       {!activePortfolioId ? (
         <GlassCard className="text-center py-12">
-          <p className="text-white/50">Create a portfolio first</p>
+          <p className="text-[var(--color-text-muted)]">Create a portfolio first</p>
         </GlassCard>
       ) : (
         <>
@@ -98,7 +98,7 @@ export function Journal() {
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
               <input
                 type="text"
                 placeholder="Search entries..."
@@ -114,8 +114,8 @@ export function Journal() {
                 onClick={() => setFilterMood('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filterMood === 'all'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-white/5 text-white/50 hover:bg-white/10'
+                    ? 'bg-white/20 text-[var(--color-text-primary)]'
+                    : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
                 }`}
               >
                 All
@@ -129,7 +129,7 @@ export function Journal() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                       filterMood === mood
                         ? `${config.bg} ${config.color}`
-                        : 'bg-white/5 text-white/50 hover:bg-white/10'
+                        : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
                     }`}
                   >
                     <config.icon className="w-4 h-4" />
@@ -159,8 +159,8 @@ export function Journal() {
                             </div>
                           )}
                           <div>
-                            <h3 className="font-semibold text-white">{entry.title}</h3>
-                            <div className="flex items-center gap-3 text-sm text-white/50">
+                            <h3 className="font-semibold text-[var(--color-text-primary)]">{entry.title}</h3>
+                            <div className="flex items-center gap-3 text-sm text-[var(--color-text-muted)]">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {formatDate(entry.date)}
@@ -173,7 +173,7 @@ export function Journal() {
                         </div>
 
                         {/* Content */}
-                        <p className="text-white/70 whitespace-pre-wrap mb-3">
+                        <p className="text-[var(--color-text-secondary)] whitespace-pre-wrap mb-3">
                           {entry.content}
                         </p>
 
@@ -183,7 +183,7 @@ export function Journal() {
                             {entry.tags.map(tag => (
                               <span
                                 key={tag}
-                                className="px-2 py-1 text-xs rounded-md bg-white/10 text-white/70"
+                                className="px-2 py-1 text-xs rounded-md bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]"
                               >
                                 #{tag}
                               </span>
@@ -216,9 +216,9 @@ export function Journal() {
             </div>
           ) : activeEntries.length === 0 ? (
             <GlassCard className="text-center py-12">
-              <BookOpen className="w-12 h-12 mx-auto mb-4 text-white/30" />
-              <h3 className="text-lg font-medium text-white mb-2">No journal entries yet</h3>
-              <p className="text-white/50 mb-4">
+              <BookOpen className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+              <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No journal entries yet</h3>
+              <p className="text-[var(--color-text-muted)] mb-4">
                 Document your thoughts and market observations
               </p>
               <Button
@@ -231,8 +231,8 @@ export function Journal() {
             </GlassCard>
           ) : (
             <GlassCard className="text-center py-8">
-              <Search className="w-10 h-10 mx-auto mb-3 text-white/30" />
-              <p className="text-white/50">No entries match your filters</p>
+              <Search className="w-10 h-10 mx-auto mb-3 text-[var(--color-text-muted)]" />
+              <p className="text-[var(--color-text-muted)]">No entries match your filters</p>
             </GlassCard>
           )}
         </>

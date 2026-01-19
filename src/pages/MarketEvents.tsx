@@ -15,13 +15,13 @@ const EVENT_TYPE_CONFIG: Record<MarketEvent['type'], { label: string; emoji: str
   regulation: { label: 'Regulation', emoji: '⚖️', color: 'bg-purple-500/20' },
   hack: { label: 'Hack', emoji: '🔓', color: 'bg-red-500/20' },
   launch: { label: 'Launch', emoji: '🎉', color: 'bg-cyan-500/20' },
-  other: { label: 'Other', emoji: '📌', color: 'bg-white/10' }
+  other: { label: 'Other', emoji: '📌', color: 'bg-[var(--color-bg-tertiary)]' }
 };
 
 const IMPACT_CONFIG = {
   positive: { icon: TrendingUp, color: 'text-positive', label: 'Positive' },
   negative: { icon: TrendingDown, color: 'text-negative', label: 'Negative' },
-  neutral: { icon: Minus, color: 'text-white/50', label: 'Neutral' }
+  neutral: { icon: Minus, color: 'text-[var(--color-text-muted)]', label: 'Neutral' }
 };
 
 export function MarketEvents() {
@@ -95,8 +95,8 @@ export function MarketEvents() {
             onClick={() => setFilterType('all')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               filterType === 'all'
-                ? 'bg-white/20 text-white'
-                : 'bg-white/5 text-white/50 hover:bg-white/10'
+                ? 'bg-white/20 text-[var(--color-text-primary)]'
+                : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
             }`}
           >
             All Types
@@ -109,8 +109,8 @@ export function MarketEvents() {
                 onClick={() => setFilterType(type)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   filterType === type
-                    ? `${config.color} text-white`
-                    : 'bg-white/5 text-white/50 hover:bg-white/10'
+                    ? `${config.color} text-[var(--color-text-primary)]`
+                    : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
                 }`}
               >
                 {config.emoji} {config.label}
@@ -153,9 +153,9 @@ export function MarketEvents() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="font-semibold text-white">{event.title}</h3>
+                        <h3 className="font-semibold text-[var(--color-text-primary)]">{event.title}</h3>
                         <div className="flex items-center gap-3 mt-1 text-sm">
-                          <span className="flex items-center gap-1 text-white/50">
+                          <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
                             <Calendar className="w-3 h-3" />
                             {formatDate(event.date)}
                           </span>
@@ -187,7 +187,7 @@ export function MarketEvents() {
 
                     {/* Description */}
                     {event.description && (
-                      <p className="text-white/70 mt-2">{event.description}</p>
+                      <p className="text-[var(--color-text-secondary)] mt-2">{event.description}</p>
                     )}
 
                     {/* Footer */}
@@ -198,7 +198,7 @@ export function MarketEvents() {
                           {event.coins.map(coin => (
                             <span
                               key={coin}
-                              className="px-2 py-0.5 text-xs rounded bg-white/10 text-white/70 uppercase"
+                              className="px-2 py-0.5 text-xs rounded bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] uppercase"
                             >
                               {coin}
                             </span>
@@ -227,9 +227,9 @@ export function MarketEvents() {
         </div>
       ) : marketEvents.length === 0 ? (
         <GlassCard className="text-center py-12">
-          <Newspaper className="w-12 h-12 mx-auto mb-4 text-white/30" />
-          <h3 className="text-lg font-medium text-white mb-2">No market events yet</h3>
-          <p className="text-white/50 mb-4">
+          <Newspaper className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No market events yet</h3>
+          <p className="text-[var(--color-text-muted)] mb-4">
             Track important market events to understand their impact on your portfolio
           </p>
           <Button
@@ -242,8 +242,8 @@ export function MarketEvents() {
         </GlassCard>
       ) : (
         <GlassCard className="text-center py-8">
-          <Newspaper className="w-10 h-10 mx-auto mb-3 text-white/30" />
-          <p className="text-white/50">No events match your filters</p>
+          <Newspaper className="w-10 h-10 mx-auto mb-3 text-[var(--color-text-muted)]" />
+          <p className="text-[var(--color-text-muted)]">No events match your filters</p>
         </GlassCard>
       )}
 

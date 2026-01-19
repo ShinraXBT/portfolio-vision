@@ -68,9 +68,9 @@ export function WalletManager() {
 
       {!activePortfolioId ? (
         <GlassCard className="text-center py-12">
-          <Wallet className="w-12 h-12 mx-auto mb-4 text-white/30" />
-          <h3 className="text-lg font-medium text-white mb-2">No portfolio selected</h3>
-          <p className="text-white/50 mb-4">Create a portfolio first to add wallets</p>
+          <Wallet className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No portfolio selected</h3>
+          <p className="text-[var(--color-text-muted)] mb-4">Create a portfolio first to add wallets</p>
           <Button
             variant="primary"
             icon={<Plus className="w-4 h-4" />}
@@ -81,9 +81,9 @@ export function WalletManager() {
         </GlassCard>
       ) : activeWallets.length === 0 ? (
         <GlassCard className="text-center py-12">
-          <Wallet className="w-12 h-12 mx-auto mb-4 text-white/30" />
-          <h3 className="text-lg font-medium text-white mb-2">No wallets yet</h3>
-          <p className="text-white/50 mb-4">
+          <Wallet className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No wallets yet</h3>
+          <p className="text-[var(--color-text-muted)] mb-4">
             Add wallets to track your crypto holdings
           </p>
           <Button
@@ -111,9 +111,9 @@ export function WalletManager() {
                     <Wallet className="w-5 h-5" style={{ color: wallet.color }} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">{wallet.name}</h3>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{wallet.name}</h3>
                     {wallet.chain && (
-                      <p className="text-sm text-white/50">{getChainName(wallet.chain)}</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">{getChainName(wallet.chain)}</p>
                     )}
                   </div>
                 </div>
@@ -134,15 +134,15 @@ export function WalletManager() {
               </div>
 
               {wallet.address && (
-                <div className="glass-subtle p-3 rounded-lg">
-                  <p className="text-xs text-white/50 mb-1">Address</p>
+                <div className="bg-[var(--color-bg-tertiary)] rounded-xl p-3 rounded-lg">
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">Address</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-sm text-white font-mono">
+                    <code className="text-sm text-[var(--color-text-primary)] font-mono">
                       {truncateAddress(wallet.address)}
                     </code>
                     <button
                       onClick={() => navigator.clipboard.writeText(wallet.address!)}
-                      className="text-white/50 hover:text-white transition-colors"
+                      className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
                       title="Copy address"
                     >
                       <ExternalLink className="w-3 h-3" />
@@ -151,7 +151,7 @@ export function WalletManager() {
                 </div>
               )}
 
-              <div className="mt-3 pt-3 border-t border-white/5">
+              <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
                 <div
                   className="w-full h-1 rounded-full"
                   style={{ backgroundColor: wallet.color }}
@@ -163,12 +163,12 @@ export function WalletManager() {
           {/* Add New Card */}
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="glass border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-white/20 hover:bg-white/5 transition-all min-h-[180px]"
+            className="glass border-2 border-dashed border-[var(--color-border)] rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-white/20 hover:bg-[var(--color-bg-tertiary)] transition-all min-h-[180px]"
           >
-            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
-              <Plus className="w-6 h-6 text-white/50" />
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-tertiary)] flex items-center justify-center">
+              <Plus className="w-6 h-6 text-[var(--color-text-muted)]" />
             </div>
-            <span className="text-white/50 font-medium">Add Wallet</span>
+            <span className="text-[var(--color-text-muted)] font-medium">Add Wallet</span>
           </button>
         </div>
       )}

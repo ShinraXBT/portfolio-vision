@@ -191,7 +191,7 @@ export function MonthlyView() {
   const getColorClass = (value: number) => {
     if (value > 0) return 'text-positive';
     if (value < 0) return 'text-negative';
-    return 'text-white/50';
+    return 'text-[var(--color-text-muted)]';
   };
 
   const getBgColorClass = (percent: number) => {
@@ -226,7 +226,7 @@ export function MonthlyView() {
             icon={<ChevronLeft className="w-5 h-5" />}
             onClick={goToPrevYear}
           />
-          <h2 className="text-2xl font-bold text-white min-w-[100px] text-center">
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] min-w-[100px] text-center">
             {currentYear}
           </h2>
           <IconButton
@@ -241,7 +241,7 @@ export function MonthlyView() {
 
       {!activePortfolioId ? (
         <GlassCard className="text-center py-12">
-          <p className="text-white/50">Create a portfolio first</p>
+          <p className="text-[var(--color-text-muted)]">Create a portfolio first</p>
         </GlassCard>
       ) : (
         <>
@@ -251,8 +251,8 @@ export function MonthlyView() {
               {/* Portfolio Evolution */}
               <GlassCard>
                 <div className="flex items-center gap-2 mb-4">
-                  <LineChart className="w-5 h-5 text-white/50" />
-                  <h3 className="text-lg font-semibold text-white">Portfolio Evolution</h3>
+                  <LineChart className="w-5 h-5 text-[var(--color-text-muted)]" />
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Portfolio Evolution</h3>
                 </div>
                 <MonthlyAreaChart data={chartData} height={220} />
               </GlassCard>
@@ -260,8 +260,8 @@ export function MonthlyView() {
               {/* Monthly Deltas */}
               <GlassCard>
                 <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-white/50" />
-                  <h3 className="text-lg font-semibold text-white">Monthly Performance</h3>
+                  <BarChart3 className="w-5 h-5 text-[var(--color-text-muted)]" />
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Monthly Performance</h3>
                 </div>
                 <MonthlyBarChart data={chartData} height={220} />
               </GlassCard>
@@ -273,15 +273,15 @@ export function MonthlyView() {
             <GlassCard>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-white">Reference Prices</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Reference Prices</h3>
                   <div className="flex items-center gap-4 text-sm">
                     <span className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                      <span className="text-white/70">BTC</span>
+                      <span className="text-[var(--color-text-secondary)]">BTC</span>
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                      <span className="text-white/70">ETH</span>
+                      <span className="text-[var(--color-text-secondary)]">ETH</span>
                     </span>
                   </div>
                 </div>
@@ -295,14 +295,14 @@ export function MonthlyView() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left p-4 text-sm font-medium text-white/50">Month</th>
-                    <th className="text-right p-4 text-sm font-medium text-white/50">Total</th>
-                    <th className="text-right p-4 text-sm font-medium text-white/50">Delta $</th>
-                    <th className="text-right p-4 text-sm font-medium text-white/50">Delta %</th>
-                    <th className="text-right p-4 text-sm font-medium text-white/50">BTC</th>
-                    <th className="text-right p-4 text-sm font-medium text-white/50">ETH</th>
-                    <th className="text-center p-4 text-sm font-medium text-white/50 w-24">Actions</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left p-4 text-sm font-medium text-[var(--color-text-muted)]">Month</th>
+                    <th className="text-right p-4 text-sm font-medium text-[var(--color-text-muted)]">Total</th>
+                    <th className="text-right p-4 text-sm font-medium text-[var(--color-text-muted)]">Delta $</th>
+                    <th className="text-right p-4 text-sm font-medium text-[var(--color-text-muted)]">Delta %</th>
+                    <th className="text-right p-4 text-sm font-medium text-[var(--color-text-muted)]">BTC</th>
+                    <th className="text-right p-4 text-sm font-medium text-[var(--color-text-muted)]">ETH</th>
+                    <th className="text-center p-4 text-sm font-medium text-[var(--color-text-muted)] w-24">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -313,13 +313,13 @@ export function MonthlyView() {
                     return (
                       <tr
                         key={row.monthStr}
-                        className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
+                        className={`border-b border-[var(--color-border)] hover:bg-[var(--color-bg-tertiary)] transition-colors ${
                           hasData ? getBgColorClass(row.snapshot!.deltaPercent) : ''
                         }`}
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-white">{row.monthName}</span>
+                            <span className="font-medium text-[var(--color-text-primary)]">{row.monthName}</span>
                             {isATH && (
                               <span title="Year High">
                                 <Trophy className="w-4 h-4 text-amber-400" />
@@ -328,22 +328,22 @@ export function MonthlyView() {
                           </div>
                         </td>
                         <td className="p-4 text-right">
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-[var(--color-text-primary)]">
                             {hasData ? formatCurrency(row.snapshot!.totalUsd) : '--'}
                           </span>
                         </td>
-                        <td className={`p-4 text-right font-medium ${hasData ? getColorClass(row.snapshot!.deltaUsd) : 'text-white/50'}`}>
+                        <td className={`p-4 text-right font-medium ${hasData ? getColorClass(row.snapshot!.deltaUsd) : 'text-[var(--color-text-muted)]'}`}>
                           {hasData ? formatCurrency(row.snapshot!.deltaUsd) : '--'}
                         </td>
-                        <td className={`p-4 text-right font-medium ${hasData ? getColorClass(row.snapshot!.deltaPercent) : 'text-white/50'}`}>
+                        <td className={`p-4 text-right font-medium ${hasData ? getColorClass(row.snapshot!.deltaPercent) : 'text-[var(--color-text-muted)]'}`}>
                           {hasData ? formatPercent(row.snapshot!.deltaPercent) : '--'}
                         </td>
-                        <td className="p-4 text-right text-white/70">
+                        <td className="p-4 text-right text-[var(--color-text-secondary)]">
                           {hasData && row.snapshot!.btcPrice > 0
                             ? formatCurrency(row.snapshot!.btcPrice, 'USD', { compact: true })
                             : '--'}
                         </td>
-                        <td className="p-4 text-right text-white/70">
+                        <td className="p-4 text-right text-[var(--color-text-secondary)]">
                           {hasData && row.snapshot!.ethPrice > 0
                             ? formatCurrency(row.snapshot!.ethPrice, 'USD', { compact: true })
                             : '--'}
@@ -378,12 +378,12 @@ export function MonthlyView() {
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-white/20 bg-white/5">
+                  <tr className="border-t-2 border-white/20 bg-[var(--color-bg-tertiary)]">
                     <td className="p-4">
-                      <span className="font-bold text-white">Year Total</span>
+                      <span className="font-bold text-[var(--color-text-primary)]">Year Total</span>
                     </td>
                     <td className="p-4 text-right">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-[var(--color-text-primary)]">
                         {yearlyStats.endValue > 0 ? formatCurrency(yearlyStats.endValue) : '--'}
                       </span>
                     </td>
@@ -417,13 +417,13 @@ export function MonthlyView() {
                       }
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Year Performance</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">Year Performance</p>
                       <p className={`text-xl font-bold ${getColorClass(yearlyStats.deltaPercent)}`}>
                         {formatPercent(yearlyStats.deltaPercent)}
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm text-white/50">
+                  <div className="text-sm text-[var(--color-text-muted)]">
                     {formatCurrency(yearlyStats.startValue)} → {formatCurrency(yearlyStats.endValue)}
                   </div>
                 </GlassCard>
@@ -435,13 +435,13 @@ export function MonthlyView() {
                       <Trophy className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Year High</p>
-                      <p className="text-xl font-bold text-white">
+                      <p className="text-sm text-[var(--color-text-muted)]">Year High</p>
+                      <p className="text-xl font-bold text-[var(--color-text-primary)]">
                         {formatCurrency(yearlyStats.athValue)}
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm text-white/50">
+                  <div className="text-sm text-[var(--color-text-muted)]">
                     Reached in {yearlyStats.athMonth}
                   </div>
                 </GlassCard>
@@ -453,13 +453,13 @@ export function MonthlyView() {
                       <TrendingUp className="w-5 h-5 text-positive" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Best Month</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">Best Month</p>
                       <p className="text-xl font-bold text-positive">
                         {yearlyStats.bestMonth ? formatCurrency(yearlyStats.bestMonth.delta) : '--'}
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm text-white/50">
+                  <div className="text-sm text-[var(--color-text-muted)]">
                     {yearlyStats.bestMonth
                       ? `${yearlyStats.bestMonth.name} (${formatPercent(yearlyStats.bestMonth.percent)})`
                       : '--'
@@ -474,13 +474,13 @@ export function MonthlyView() {
                       <TrendingDown className="w-5 h-5 text-negative" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Worst Month</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">Worst Month</p>
                       <p className="text-xl font-bold text-negative">
                         {yearlyStats.worstMonth ? formatCurrency(yearlyStats.worstMonth.delta) : '--'}
                       </p>
                     </div>
                   </div>
-                  <div className="text-sm text-white/50">
+                  <div className="text-sm text-[var(--color-text-muted)]">
                     {yearlyStats.worstMonth
                       ? `${yearlyStats.worstMonth.name} (${formatPercent(yearlyStats.worstMonth.percent)})`
                       : '--'
@@ -498,7 +498,7 @@ export function MonthlyView() {
                       <BarChart3 className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Avg Monthly Change</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">Avg Monthly Change</p>
                       <p className={`text-lg font-bold ${getColorClass(yearlyStats.avgMonthlyChange)}`}>
                         {formatCurrency(yearlyStats.avgMonthlyChange)}
                       </p>
@@ -516,14 +516,14 @@ export function MonthlyView() {
                       <Target className="w-5 h-5 text-purple-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Win Rate</p>
-                      <p className="text-lg font-bold text-white">
+                      <p className="text-sm text-[var(--color-text-muted)]">Win Rate</p>
+                      <p className="text-lg font-bold text-[var(--color-text-primary)]">
                         {yearlyStats.totalMonths > 0
                           ? `${Math.round((yearlyStats.positiveMonths / yearlyStats.totalMonths) * 100)}%`
                           : '--'
                         }
                       </p>
-                      <p className="text-sm text-white/50">
+                      <p className="text-sm text-[var(--color-text-muted)]">
                         {yearlyStats.positiveMonths} positive / {yearlyStats.negativeMonths} negative
                       </p>
                     </div>
@@ -537,11 +537,11 @@ export function MonthlyView() {
                       <Calendar className="w-5 h-5 text-cyan-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/50">Months Tracked</p>
-                      <p className="text-lg font-bold text-white">
+                      <p className="text-sm text-[var(--color-text-muted)]">Months Tracked</p>
+                      <p className="text-lg font-bold text-[var(--color-text-primary)]">
                         {yearlyStats.totalMonths} / 12
                       </p>
-                      <p className="text-sm text-white/50">
+                      <p className="text-sm text-[var(--color-text-muted)]">
                         {12 - yearlyStats.totalMonths} months remaining
                       </p>
                     </div>
@@ -553,9 +553,9 @@ export function MonthlyView() {
 
           {/* Empty state hint */}
           {!yearlyStats.hasData && (
-            <GlassCard className="glass-subtle text-center py-8">
-              <Calendar className="w-10 h-10 mx-auto mb-3 text-white/30" />
-              <p className="text-white/50">
+            <GlassCard className="bg-[var(--color-bg-tertiary)] rounded-xl text-center py-8">
+              <Calendar className="w-10 h-10 mx-auto mb-3 text-[var(--color-text-muted)]" />
+              <p className="text-[var(--color-text-muted)]">
                 Add monthly entries to see yearly statistics
               </p>
             </GlassCard>

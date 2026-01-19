@@ -95,14 +95,14 @@ export function Portfolios() {
         <GlassCard className="bg-gradient-to-r from-purple-500/10 to-blue-500/10">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-white/50">Total Across All Portfolios</p>
-              <p className="text-3xl font-bold text-white mt-1">
+              <p className="text-sm text-[var(--color-text-muted)]">Total Across All Portfolios</p>
+              <p className="text-3xl font-bold text-[var(--color-text-primary)] mt-1">
                 {formatCurrency(totalAcrossAll)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-white/50">{portfolios.length} portfolios</p>
-              <p className="text-sm text-white/50">
+              <p className="text-sm text-[var(--color-text-muted)]">{portfolios.length} portfolios</p>
+              <p className="text-sm text-[var(--color-text-muted)]">
                 {wallets.length} wallets total
               </p>
             </div>
@@ -112,9 +112,9 @@ export function Portfolios() {
 
       {portfolios.length === 0 ? (
         <GlassCard className="text-center py-12">
-          <Layers className="w-12 h-12 mx-auto mb-4 text-white/30" />
-          <h3 className="text-lg font-medium text-white mb-2">No portfolios yet</h3>
-          <p className="text-white/50 mb-4">
+          <Layers className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No portfolios yet</h3>
+          <p className="text-[var(--color-text-muted)] mb-4">
             Create your first portfolio to start tracking
           </p>
           <Button
@@ -153,8 +153,8 @@ export function Portfolios() {
                     <Layers className="w-6 h-6" style={{ color: portfolio.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white truncate">{portfolio.name}</h3>
-                    <p className="text-sm text-white/50">
+                    <h3 className="font-semibold text-[var(--color-text-primary)] truncate">{portfolio.name}</h3>
+                    <p className="text-sm text-[var(--color-text-muted)]">
                       Created {formatDate(portfolio.createdAt, 'short')}
                     </p>
                   </div>
@@ -162,28 +162,28 @@ export function Portfolios() {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between">
-                    <span className="text-sm text-white/50">Total Value</span>
-                    <span className="font-semibold text-white">
+                    <span className="text-sm text-[var(--color-text-muted)]">Total Value</span>
+                    <span className="font-semibold text-[var(--color-text-primary)]">
                       {total > 0 ? formatCurrency(total) : '--'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-white/50">Wallets</span>
-                    <span className="text-white">{walletCount}</span>
+                    <span className="text-sm text-[var(--color-text-muted)]">Wallets</span>
+                    <span className="text-[var(--color-text-primary)]">{walletCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-white/50">Snapshots</span>
-                    <span className="text-white">{snapshotCount}</span>
+                    <span className="text-sm text-[var(--color-text-muted)]">Snapshots</span>
+                    <span className="text-[var(--color-text-primary)]">{snapshotCount}</span>
                   </div>
                   {lastUpdate && (
                     <div className="flex justify-between">
-                      <span className="text-sm text-white/50">Last Update</span>
-                      <span className="text-white text-sm">{formatDate(lastUpdate, 'short')}</span>
+                      <span className="text-sm text-[var(--color-text-muted)]">Last Update</span>
+                      <span className="text-[var(--color-text-primary)] text-sm">{formatDate(lastUpdate, 'short')}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-3 border-t border-white/5">
+                <div className="flex gap-2 pt-3 border-t border-[var(--color-border)]">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -220,12 +220,12 @@ export function Portfolios() {
           {/* Add New Card */}
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="glass border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-white/20 hover:bg-white/5 transition-all min-h-[280px]"
+            className="glass border-2 border-dashed border-[var(--color-border)] rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:border-white/20 hover:bg-[var(--color-bg-tertiary)] transition-all min-h-[280px]"
           >
-            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
-              <Plus className="w-6 h-6 text-white/50" />
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-bg-tertiary)] flex items-center justify-center">
+              <Plus className="w-6 h-6 text-[var(--color-text-muted)]" />
             </div>
-            <span className="text-white/50 font-medium">Create Portfolio</span>
+            <span className="text-[var(--color-text-muted)] font-medium">Create Portfolio</span>
           </button>
         </div>
       )}
