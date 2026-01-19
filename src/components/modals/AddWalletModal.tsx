@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input, ColorPicker } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -21,12 +21,30 @@ interface AddWalletModalProps {
 export function AddWalletModal({ isOpen, onClose, editWallet }: AddWalletModalProps) {
   const { activePortfolioId, createWallet, updateWallet } = useAppStore();
 
-  const [name, setName] = useState(editWallet?.name ?? '');
-  const [address, setAddress] = useState(editWallet?.address ?? '');
-  const [chain, setChain] = useState(editWallet?.chain ?? '');
-  const [color, setColor] = useState(editWallet?.color ?? walletColors[0].value);
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [chain, setChain] = useState('');
+  const [color, setColor] = useState(walletColors[0].value);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Reset form when modal opens or editWallet changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editWallet) {
+        setName(editWallet.name);
+        setAddress(editWallet.address ?? '');
+        setChain(editWallet.chain ?? '');
+        setColor(editWallet.color);
+      } else {
+        setName('');
+        setAddress('');
+        setChain('');
+        setColor(walletColors[0].value);
+      }
+      setError('');
+    }
+  }, [isOpen, editWallet]);
 
   const isEdit = !!editWallet;
 

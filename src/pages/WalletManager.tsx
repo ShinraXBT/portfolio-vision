@@ -66,7 +66,16 @@ export function WalletManager() {
 
       {!activePortfolioId ? (
         <GlassCard className="text-center py-12">
-          <p className="text-white/50">Create a portfolio first to add wallets</p>
+          <Wallet className="w-12 h-12 mx-auto mb-4 text-white/30" />
+          <h3 className="text-lg font-medium text-white mb-2">No portfolio selected</h3>
+          <p className="text-white/50 mb-4">Create a portfolio first to add wallets</p>
+          <Button
+            variant="primary"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => window.location.href = '/portfolios'}
+          >
+            Create Portfolio
+          </Button>
         </GlassCard>
       ) : activeWallets.length === 0 ? (
         <GlassCard className="text-center py-12">
