@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, Trophy, TrendingUp, TrendingDown, Calendar, Target, BarChart3 } from 'lucide-react';
 import { PageHeader } from '../components/layout';
 import { GlassCard, Button, IconButton, ConfirmModal } from '../components/ui';
 import { AddMonthlySnapshotModal } from '../components/modals';
@@ -41,28 +41,100 @@ export function MonthlyView() {
     return data;
   }, [activeMonthlySnapshots, currentYear]);
 
-  // Find ATH
-  const athSnapshot = useMemo(() => {
-    const snapshotsWithData = monthlyData.filter(m => m.snapshot);
-    if (snapshotsWithData.length === 0) return null;
-
-    return snapshotsWithData.reduce((max, current) =>
-      (current.snapshot?.totalUsd ?? 0) > (max.snapshot?.totalUsd ?? 0) ? current : max
-    );
-  }, [monthlyData]);
-
-  // Calculate yearly totals
-  const yearlyTotals = useMemo(() => {
+  // Calculate yearly stats
+  const yearlyStats = useMemo(() => {
     const monthsWithData = monthlyData.filter(m => m.snapshot);
-    if (monthsWithData.length < 1) return { first: 0, last: 0, deltaUsd: 0, deltaPercent: 0 };
 
-    const first = monthsWithData[0].snapshot!.totalUsd;
-    const last = monthsWithData[monthsWithData.length - 1].snapshot!.totalUsd;
+    if (monthsWithData.length === 0) {
+      return {
+        hasData: false,
+        startValue: 0,
+        endValue: 0,
+        deltaUsd: 0,
+        deltaPercent: 0,
+        athValue: 0,
+        athMonth: '',
+        atlValue: 0,
+        atlMonth: '',
+        bestMonth: null as { name: string; delta: number; percent: number } | null,
+        worstMonth: null as { name: string; delta: number; percent: number } | null,
+        avgMonthlyChange: 0,
+        avgMonthlyChangePercent: 0,
+        positiveMonths: 0,
+        negativeMonths: 0,
+        totalMonths: 0
+      };
+    }
 
-    const deltaUsd = last - first;
-    const deltaPercent = first > 0 ? ((last - first) / first) * 100 : 0;
+    const startValue = monthsWithData[0].snapshot!.totalUsd;
+    const endValue = monthsWithData[monthsWithData.length - 1].snapshot!.totalUsd;
+    const deltaUsd = endValue - startValue;
+    const deltaPercent = startValue > 0 ? ((endValue - startValue) / startValue) * 100 : 0;
 
-    return { first, last, deltaUsd, deltaPercent };
+    // ATH and ATL
+    let athValue = 0;
+    let athMonth = '';
+    let atlValue = Infinity;
+    let atlMonth = '';
+
+    for (const m of monthsWithData) {
+      if (m.snapshot!.totalUsd > athValue) {
+        athValue = m.snapshot!.totalUsd;
+        athMonth = m.monthName;
+      }
+      if (m.snapshot!.totalUsd < atlValue) {
+        atlValue = m.snapshot!.totalUsd;
+        atlMonth = m.monthName;
+      }
+    }
+
+    // Best and worst months by delta
+    let bestMonth: { name: string; delta: number; percent: number } | null = null;
+    let worstMonth: { name: string; delta: number; percent: number } | null = null;
+    let positiveMonths = 0;
+    let negativeMonths = 0;
+    let totalDelta = 0;
+    let totalDeltaPercent = 0;
+
+    for (const m of monthsWithData) {
+      const delta = m.snapshot!.deltaUsd;
+      const percent = m.snapshot!.deltaPercent;
+
+      if (delta > 0) positiveMonths++;
+      if (delta < 0) negativeMonths++;
+
+      totalDelta += delta;
+      totalDeltaPercent += percent;
+
+      if (!bestMonth || delta > bestMonth.delta) {
+        bestMonth = { name: m.monthName, delta, percent };
+      }
+      if (!worstMonth || delta < worstMonth.delta) {
+        worstMonth = { name: m.monthName, delta, percent };
+      }
+    }
+
+    const avgMonthlyChange = monthsWithData.length > 0 ? totalDelta / monthsWithData.length : 0;
+    const avgMonthlyChangePercent = monthsWithData.length > 0 ? totalDeltaPercent / monthsWithData.length : 0;
+
+    return {
+      hasData: true,
+      startValue,
+      endValue,
+      deltaUsd,
+      deltaPercent,
+      athValue,
+      athMonth,
+      atlValue: atlValue === Infinity ? 0 : atlValue,
+      atlMonth,
+      bestMonth,
+      worstMonth,
+      avgMonthlyChange,
+      avgMonthlyChangePercent,
+      positiveMonths,
+      negativeMonths,
+      totalMonths: monthsWithData.length
+    };
   }, [monthlyData]);
 
   const goToPrevYear = () => setCurrentYear(y => y - 1);
@@ -118,7 +190,7 @@ export function MonthlyView() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Monthly Recap"
-        subtitle="Global portfolio value per month (independent tracking)"
+        subtitle="Global portfolio value per month"
         action={
           <Button
             variant="primary"
@@ -174,7 +246,7 @@ export function MonthlyView() {
                 </thead>
                 <tbody>
                   {monthlyData.map(row => {
-                    const isATH = athSnapshot?.monthStr === row.monthStr && row.snapshot;
+                    const isATH = yearlyStats.athMonth === row.monthName && row.snapshot;
                     const hasData = !!row.snapshot;
 
                     return (
@@ -188,7 +260,7 @@ export function MonthlyView() {
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-white">{row.monthName}</span>
                             {isATH && (
-                              <span title="All-Time High">
+                              <span title="Year High">
                                 <Trophy className="w-4 h-4 text-amber-400" />
                               </span>
                             )}
@@ -223,14 +295,12 @@ export function MonthlyView() {
                                   icon={<Pencil className="w-4 h-4" />}
                                   size="sm"
                                   onClick={() => handleEditClick(row.snapshot!)}
-                                  title="Edit"
                                 />
                                 <IconButton
                                   icon={<Trash2 className="w-4 h-4" />}
                                   size="sm"
                                   variant="danger"
                                   onClick={() => setDeleteConfirm(row.snapshot!)}
-                                  title="Delete"
                                 />
                               </>
                             ) : (
@@ -238,7 +308,6 @@ export function MonthlyView() {
                                 icon={<Plus className="w-4 h-4" />}
                                 size="sm"
                                 onClick={() => handleAddClick(row.monthStr)}
-                                title="Add entry"
                               />
                             )}
                           </div>
@@ -254,14 +323,14 @@ export function MonthlyView() {
                     </td>
                     <td className="p-4 text-right">
                       <span className="font-bold text-white">
-                        {yearlyTotals.last > 0 ? formatCurrency(yearlyTotals.last) : '--'}
+                        {yearlyStats.endValue > 0 ? formatCurrency(yearlyStats.endValue) : '--'}
                       </span>
                     </td>
-                    <td className={`p-4 text-right font-bold ${getColorClass(yearlyTotals.deltaUsd)}`}>
-                      {yearlyTotals.deltaUsd !== 0 ? formatCurrency(yearlyTotals.deltaUsd) : '--'}
+                    <td className={`p-4 text-right font-bold ${getColorClass(yearlyStats.deltaUsd)}`}>
+                      {yearlyStats.deltaUsd !== 0 ? formatCurrency(yearlyStats.deltaUsd) : '--'}
                     </td>
-                    <td className={`p-4 text-right font-bold ${getColorClass(yearlyTotals.deltaPercent)}`}>
-                      {yearlyTotals.deltaPercent !== 0 ? formatPercent(yearlyTotals.deltaPercent) : '--'}
+                    <td className={`p-4 text-right font-bold ${getColorClass(yearlyStats.deltaPercent)}`}>
+                      {yearlyStats.deltaPercent !== 0 ? formatPercent(yearlyStats.deltaPercent) : '--'}
                     </td>
                     <td colSpan={3} />
                   </tr>
@@ -270,13 +339,166 @@ export function MonthlyView() {
             </div>
           </GlassCard>
 
-          {/* Info Card */}
-          <GlassCard className="glass-subtle">
-            <p className="text-sm text-white/50">
-              This view is independent from the Daily View. Enter your total portfolio value at the end of each month for a clean monthly recap.
-              The delta is calculated automatically from the previous month.
-            </p>
-          </GlassCard>
+          {/* Year Stats */}
+          {yearlyStats.hasData && (
+            <>
+              {/* Main Stats Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Year Performance */}
+                <GlassCard>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      yearlyStats.deltaPercent >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
+                    }`}>
+                      {yearlyStats.deltaPercent >= 0
+                        ? <TrendingUp className="w-5 h-5 text-positive" />
+                        : <TrendingDown className="w-5 h-5 text-negative" />
+                      }
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Year Performance</p>
+                      <p className={`text-xl font-bold ${getColorClass(yearlyStats.deltaPercent)}`}>
+                        {formatPercent(yearlyStats.deltaPercent)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-white/50">
+                    {formatCurrency(yearlyStats.startValue)} → {formatCurrency(yearlyStats.endValue)}
+                  </div>
+                </GlassCard>
+
+                {/* ATH */}
+                <GlassCard>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                      <Trophy className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Year High</p>
+                      <p className="text-xl font-bold text-white">
+                        {formatCurrency(yearlyStats.athValue)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-white/50">
+                    Reached in {yearlyStats.athMonth}
+                  </div>
+                </GlassCard>
+
+                {/* Best Month */}
+                <GlassCard>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-positive" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Best Month</p>
+                      <p className="text-xl font-bold text-positive">
+                        {yearlyStats.bestMonth ? formatCurrency(yearlyStats.bestMonth.delta) : '--'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-white/50">
+                    {yearlyStats.bestMonth
+                      ? `${yearlyStats.bestMonth.name} (${formatPercent(yearlyStats.bestMonth.percent)})`
+                      : '--'
+                    }
+                  </div>
+                </GlassCard>
+
+                {/* Worst Month */}
+                <GlassCard>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                      <TrendingDown className="w-5 h-5 text-negative" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Worst Month</p>
+                      <p className="text-xl font-bold text-negative">
+                        {yearlyStats.worstMonth ? formatCurrency(yearlyStats.worstMonth.delta) : '--'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-sm text-white/50">
+                    {yearlyStats.worstMonth
+                      ? `${yearlyStats.worstMonth.name} (${formatPercent(yearlyStats.worstMonth.percent)})`
+                      : '--'
+                    }
+                  </div>
+                </GlassCard>
+              </div>
+
+              {/* Secondary Stats Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Average Monthly */}
+                <GlassCard>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Avg Monthly Change</p>
+                      <p className={`text-lg font-bold ${getColorClass(yearlyStats.avgMonthlyChange)}`}>
+                        {formatCurrency(yearlyStats.avgMonthlyChange)}
+                      </p>
+                      <p className={`text-sm ${getColorClass(yearlyStats.avgMonthlyChangePercent)}`}>
+                        {formatPercent(yearlyStats.avgMonthlyChangePercent)}
+                      </p>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                {/* Win Rate */}
+                <GlassCard>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                      <Target className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Win Rate</p>
+                      <p className="text-lg font-bold text-white">
+                        {yearlyStats.totalMonths > 0
+                          ? `${Math.round((yearlyStats.positiveMonths / yearlyStats.totalMonths) * 100)}%`
+                          : '--'
+                        }
+                      </p>
+                      <p className="text-sm text-white/50">
+                        {yearlyStats.positiveMonths} positive / {yearlyStats.negativeMonths} negative
+                      </p>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                {/* Months Tracked */}
+                <GlassCard>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-cyan-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-white/50">Months Tracked</p>
+                      <p className="text-lg font-bold text-white">
+                        {yearlyStats.totalMonths} / 12
+                      </p>
+                      <p className="text-sm text-white/50">
+                        {12 - yearlyStats.totalMonths} months remaining
+                      </p>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+            </>
+          )}
+
+          {/* Empty state hint */}
+          {!yearlyStats.hasData && (
+            <GlassCard className="glass-subtle text-center py-8">
+              <Calendar className="w-10 h-10 mx-auto mb-3 text-white/30" />
+              <p className="text-white/50">
+                Add monthly entries to see yearly statistics
+              </p>
+            </GlassCard>
+          )}
         </>
       )}
 
