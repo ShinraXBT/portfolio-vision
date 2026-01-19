@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { IconButton } from './Button';
+import { IconButton, Button } from './Button';
 
 interface ModalProps {
   isOpen: boolean;
@@ -46,36 +46,36 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="modal-overlay">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0"
         onClick={onClose}
       />
 
       {/* Modal content */}
       <div
-        className={`relative w-full ${sizeClasses[size]} glass animate-fade-in`}
+        className={`modal relative w-full ${sizeClasses[size]}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         {(title || showClose) && (
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <div className="modal-header flex items-center justify-between">
             {title && (
-              <h2 className="text-lg font-semibold text-white">{title}</h2>
+              <h2 className="modal-title">{title}</h2>
             )}
             {showClose && (
               <IconButton
                 icon={<X className="w-5 h-5" />}
                 onClick={onClose}
-                className="ml-auto"
+                className="ml-auto -mr-2"
               />
             )}
           </div>
         )}
 
         {/* Body */}
-        <div className="p-4">
+        <div className="modal-body">
           {children}
         </div>
       </div>
@@ -108,25 +108,22 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-      <p className="text-white/70 mb-6">{message}</p>
-      <div className="flex gap-3 justify-end">
-        <button
+      <p className="text-[var(--color-text-secondary)] mb-6">{message}</p>
+      <div className="modal-footer">
+        <Button
+          variant="secondary"
           onClick={onClose}
-          className="btn-glass"
           disabled={loading}
         >
           {cancelText}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={variant === 'danger' ? 'danger' : 'primary'}
           onClick={onConfirm}
-          className={variant === 'danger'
-            ? 'btn-glass bg-red-500/20 border-red-500/30 text-red-400 hover:bg-red-500/30'
-            : 'btn-primary'
-          }
-          disabled={loading}
+          loading={loading}
         >
-          {loading ? 'Loading...' : confirmText}
-        </button>
+          {confirmText}
+        </Button>
       </div>
     </Modal>
   );

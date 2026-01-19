@@ -195,7 +195,7 @@ export function AddMonthlySnapshotModal({
         <div className="flex gap-3 pt-2">
           <Button
             type="button"
-            variant="glass"
+            variant="secondary"
             onClick={onClose}
             fullWidth
           >

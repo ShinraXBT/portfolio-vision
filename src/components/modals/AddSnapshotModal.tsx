@@ -198,7 +198,7 @@ export function AddSnapshotModal({ isOpen, onClose, preselectedDate, editSnapsho
         <div className="flex gap-3 pt-2">
           <Button
             type="button"
-            variant="glass"
+            variant="secondary"
             onClick={handleClose}
             fullWidth
           >

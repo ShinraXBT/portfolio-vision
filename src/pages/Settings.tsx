@@ -229,7 +229,7 @@ export function Settings() {
               <p className="text-sm text-white/50">All portfolios, wallets, and snapshots</p>
             </div>
             <Button
-              variant="glass"
+              variant="secondary"
               icon={<Download className="w-4 h-4" />}
               onClick={handleExportJSON}
               loading={isExporting}
@@ -246,7 +246,7 @@ export function Settings() {
               </p>
             </div>
             <Button
-              variant="glass"
+              variant="secondary"
               icon={<Download className="w-4 h-4" />}
               onClick={handleExportCSV}
               loading={isExporting}
@@ -339,7 +339,7 @@ export function Settings() {
               <p className="text-sm text-white/50">Copy JSON data to paste anywhere</p>
             </div>
             <Button
-              variant="glass"
+              variant="secondary"
               icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               onClick={handleCopyBackup}
             >
@@ -365,7 +365,7 @@ export function Settings() {
                 <p className="text-sm text-white/50">Open Drive to upload your backup</p>
               </div>
             </div>
-            <Button variant="glass" onClick={openGoogleDrive}>
+            <Button variant="secondary" onClick={openGoogleDrive}>
               Open
             </Button>
           </div>
@@ -383,7 +383,7 @@ export function Settings() {
                 <p className="text-sm text-white/50">Open Dropbox to upload your backup</p>
               </div>
             </div>
-            <Button variant="glass" onClick={openDropbox}>
+            <Button variant="secondary" onClick={openDropbox}>
               Open
             </Button>
           </div>

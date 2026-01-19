@@ -9,21 +9,19 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, icon, iconPosition = 'left', className = '', ...props }, ref) => {
-    const baseClasses = 'input-glass w-full transition-all duration-200';
-    const errorClasses = error ? 'border-red-500/50 focus:border-red-500' : '';
-    const iconPaddingLeft = icon && iconPosition === 'left' ? 'pl-10' : '';
-    const iconPaddingRight = icon && iconPosition === 'right' ? 'pr-10' : '';
+    const baseClasses = 'input';
+    const errorClasses = error ? 'input-error' : '';
+    const iconPaddingLeft = icon && iconPosition === 'left' ? 'pl-11' : '';
+    const iconPaddingRight = icon && iconPosition === 'right' ? 'pr-11' : '';
 
     return (
-      <div className="w-full">
+      <div className="form-group">
         {label && (
-          <label className="block text-sm font-medium text-white/70 mb-2">
-            {label}
-          </label>
+          <label className="form-label">{label}</label>
         )}
         <div className="relative">
           {icon && iconPosition === 'left' && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
               {icon}
             </span>
           )}
@@ -33,13 +31,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {icon && iconPosition === 'right' && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40">
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
               {icon}
             </span>
           )}
         </div>
         {error && (
-          <p className="mt-1 text-sm text-red-400">{error}</p>
+          <p className="form-error">{error}</p>
         )}
       </div>
     );
@@ -55,15 +53,13 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ label, error, className = '', ...props }, ref) => {
-    const baseClasses = 'input-glass w-full min-h-[100px] resize-y';
-    const errorClasses = error ? 'border-red-500/50 focus:border-red-500' : '';
+    const baseClasses = 'input min-h-[120px] resize-y';
+    const errorClasses = error ? 'input-error' : '';
 
     return (
-      <div className="w-full">
+      <div className="form-group">
         {label && (
-          <label className="block text-sm font-medium text-white/70 mb-2">
-            {label}
-          </label>
+          <label className="form-label">{label}</label>
         )}
         <textarea
           ref={ref}
@@ -71,7 +67,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && (
-          <p className="mt-1 text-sm text-red-400">{error}</p>
+          <p className="form-error">{error}</p>
         )}
       </div>
     );
@@ -88,36 +84,27 @@ interface SelectProps extends InputHTMLAttributes<HTMLSelectElement> {
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, options, className = '', ...props }, ref) => {
-    const baseClasses = 'input-glass w-full cursor-pointer appearance-none bg-no-repeat bg-right pr-10';
-    const errorClasses = error ? 'border-red-500/50 focus:border-red-500' : '';
+    const baseClasses = 'select';
+    const errorClasses = error ? 'input-error' : '';
 
     return (
-      <div className="w-full">
+      <div className="form-group">
         {label && (
-          <label className="block text-sm font-medium text-white/70 mb-2">
-            {label}
-          </label>
+          <label className="form-label">{label}</label>
         )}
-        <div className="relative">
-          <select
-            ref={ref}
-            className={`${baseClasses} ${errorClasses} ${className}`}
-            {...props}
-          >
-            {options.map(opt => (
-              <option key={opt.value} value={opt.value} className="bg-gray-900">
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </span>
-        </div>
+        <select
+          ref={ref}
+          className={`${baseClasses} ${errorClasses} ${className}`}
+          {...props}
+        >
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
         {error && (
-          <p className="mt-1 text-sm text-red-400">{error}</p>
+          <p className="form-error">{error}</p>
         )}
       </div>
     );
@@ -135,11 +122,9 @@ interface ColorPickerProps {
 
 export function ColorPicker({ label, value, onChange, colors }: ColorPickerProps) {
   return (
-    <div className="w-full">
+    <div className="form-group">
       {label && (
-        <label className="block text-sm font-medium text-white/70 mb-2">
-          {label}
-        </label>
+        <label className="form-label">{label}</label>
       )}
       <div className="flex gap-2 flex-wrap">
         {colors.map(color => (
@@ -147,10 +132,10 @@ export function ColorPicker({ label, value, onChange, colors }: ColorPickerProps
             key={color.value}
             type="button"
             onClick={() => onChange(color.value)}
-            className={`w-8 h-8 rounded-lg transition-all duration-200 ${
+            className={`w-9 h-9 rounded-xl transition-all duration-200 ${
               value === color.value
-                ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110'
-                : 'hover:scale-105'
+                ? 'ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-white scale-110'
+                : 'hover:scale-105 opacity-80 hover:opacity-100'
             }`}
             style={{ backgroundColor: color.value }}
             title={color.name}
